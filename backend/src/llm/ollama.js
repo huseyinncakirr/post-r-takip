@@ -244,11 +244,11 @@ const EGZERSIZ_KUTUPHANESI = {
     siklik: 'Haftada 5 gün',
   }],
   boyun_yuksek: [{
-    ad: 'Çene Geri Çekme (Chin Tuck)',
+    ad: 'Çene Geri Çekme',
     set: 3, tekrar: '12 tekrar (5sn bekleme)',
     hedef_bolge: 'Boyun — derin servikal fleksörler',
     nasil_yapilir: 'Dik otur ya da ayakta dur. Çeneni içe çekerek başını hafifçe geriye götür, sanki çene altında çift çene oluşturuyor gibi. 5 saniye tut, bırak. Boyun uzun kalsın, omuzlar düşük.',
-    faydalari: 'Derin servikal kasları güçlendirir, servikal diski rahatlatır ve "text neck" duruşunu düzeltir.',
+    faydalari: 'Derin servikal kasları güçlendirir, servikal diski rahatlatır ve baş öne düşme duruşunu düzeltir.',
     siklik: 'Günde 2 kez, haftanın her günü',
   }],
   boyun_kritik: [{
@@ -312,7 +312,7 @@ const EGZERSIZ_KUTUPHANESI = {
     siklik: 'Haftada 5 gün',
   }],
   omuz_dengesiz_yuksek: [{
-    ad: 'Duvar Meleği (Wall Angels)',
+    ad: 'Duvar Meleği',
     set: 3, tekrar: '12 tekrar',
     hedef_bolge: 'Omuz stabilizatörleri — sırt üst — seratus anterior',
     nasil_yapilir: 'Sırtını duvara daya, topuklar duvara değsin. Kolları 90° dirsek bükerek duvara yapıştır. Yavaşça yukarı kaydır (duvara yapışık kalsın), indir. Bel duvara yapışık kalsın.',
@@ -375,7 +375,7 @@ const EGZERSIZ_KUTUPHANESI = {
       siklik: 'Haftada 5 gün',
     },
     {
-      ad: 'Omurga Mobilizasyon (Cat-Cow)',
+      ad: 'Omurga Mobilizasyon',
       set: 3, tekrar: '10 tekrar',
       hedef_bolge: 'Tüm omurga — paravertebral kaslar',
       nasil_yapilir: 'Dört ayak pozisyonunda başla. Nefes alırken sırtı aşağı eğ (bel içbükey), nefes verirken sırtı yukarı itmek (kambur). Her pozisyonda 2 saniye bekle.',

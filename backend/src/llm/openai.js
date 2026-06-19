@@ -52,7 +52,7 @@ async function analyzeHealthRisk(stats, dailyData, recentRecords) {
   if (avgNeck > 22) {
     sorunlar.push({ seviye: 'KRİTİK', alan: 'Boyun öne eğilmesi', deger: `${avgNeck.toFixed(1)}°`, normal: '<12°', riskAraligi: '0.55–0.75', riskler: 'Servikal disk hernisi, boyun düzleşmesi (servikal lordoz kaybı), erken spondiloz' });
   } else if (avgNeck > 12) {
-    sorunlar.push({ seviye: 'ORTA', alan: 'Boyun öne eğilmesi', deger: `${avgNeck.toFixed(1)}°`, normal: '<12°', riskAraligi: '0.28–0.48', riskler: 'Text neck sendromu, kronik baş ağrısı, servikal kas yorgunluğu' });
+    sorunlar.push({ seviye: 'ORTA', alan: 'Boyun öne eğilmesi', deger: `${avgNeck.toFixed(1)}°`, normal: '<12°', riskAraligi: '0.28–0.48', riskler: 'Baş öne düşme sendromu, kronik baş ağrısı, servikal kas yorgunluğu' });
   }
 
   if (avgTension > 45) {
@@ -64,7 +64,7 @@ async function analyzeHealthRisk(stats, dailyData, recentRecords) {
   if (avgShoulder > 9) {
     sorunlar.push({ seviye: 'KRİTİK', alan: 'Omuz dengesizliği', deger: `${avgShoulder.toFixed(1)}°`, normal: '<4°', riskAraligi: '0.40–0.65', riskler: 'Rotator manşet zorlanması, postüral skolyoz, asimetrik kas atrofisi' });
   } else if (avgShoulder > 4) {
-    sorunlar.push({ seviye: 'ORTA', alan: 'Omuz dengesizliği', deger: `${avgShoulder.toFixed(1)}°`, normal: '<4°', riskAraligi: '0.18–0.35', riskler: 'Asimetrik kas gelişimi, omuz impingement başlangıcı' });
+    sorunlar.push({ seviye: 'ORTA', alan: 'Omuz dengesizliği', deger: `${avgShoulder.toFixed(1)}°`, normal: '<4°', riskAraligi: '0.18–0.35', riskler: 'Asimetrik kas gelişimi, omuz sıkışma sendromu başlangıcı' });
   }
 
   if (avgHeadTilt > 6) {
