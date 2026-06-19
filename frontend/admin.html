@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DikDur – Admin</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #020617; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+/* LOGIN */
+#login-ekran {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-kutu {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 380px;
+}
+.login-logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.login-logo .ikon { font-size: 36px; }
+.login-logo h1 { font-size: 20px; font-weight: 800; margin-top: 8px; }
+.login-logo h1 span { color: #22d3ee; }
+.login-logo .rozet { display: inline-block; background: #6366f1; color: #fff; font-size: 11px; padding: 2px 10px; border-radius: 10px; font-weight: 700; margin-top: 4px; }
+.form-alan { margin-bottom: 16px; }
+.form-alan label { display: block; font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.form-alan input {
+  width: 100%; padding: 11px 14px;
+  background: #020617; border: 1px solid #334155;
+  border-radius: 9px; color: #e2e8f0; font-size: 14px; outline: none;
+}
+.form-alan input:focus { border-color: #6366f1; }
+.giris-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: none; border-radius: 9px;
+  color: #fff; font-size: 15px; font-weight: 700;
+  cursor: pointer; margin-top: 8px;
+}
+.giris-btn:hover { opacity: .9; }
+.giris-btn:disabled { opacity: .5; cursor: not-allowed; }
+.hata-kutu {
+  background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.3);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; color: #fca5a5;
+  margin-bottom: 16px; display: none;
+}
+
+/* ADMIN PANELİ */
+#admin-ekran { display: none; min-height: 100vh; display: none; }
+body.giris-yapildi #login-ekran { display: none; }
+body.giris-yapildi #admin-ekran { display: flex; }
+
+.sidebar {
+  width: 220px; background: #0f172a;
+  border-right: 1px solid #1e293b;
+  display: flex; flex-direction: column;
+  padding: 20px 0; position: fixed;
+  top: 0; left: 0; height: 100vh; z-index: 100;
+}
+.sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 20px 24px; border-bottom: 1px solid #1e293b; margin-bottom: 16px; }
+.sidebar-logo .kutu { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#6366f1,#22d3ee); display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.sidebar-logo .yazi { font-size: 15px; font-weight: 800; }
+.sidebar-logo .yazi span { color: #22d3ee; }
+.sidebar-logo .rozet { font-size: 10px; background: #6366f1; color: #fff; padding: 2px 7px; border-radius: 10px; margin-left: 6px; font-weight: 700; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; border-left: 3px solid transparent; transition: all .2s; }
+.nav-item:hover { color: #e2e8f0; background: rgba(255,255,255,.04); }
+.nav-item.aktif { color: #22d3ee; border-left-color: #22d3ee; background: rgba(34,211,238,.07); }
+.nav-item .ikon { font-size: 16px; width: 20px; text-align: center; }
+.sidebar-bottom { margin-top: auto; padding: 16px 20px; border-top: 1px solid #1e293b; }
+.cikis-btn { width: 100%; padding: 9px; background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.cikis-btn:hover { background: #334155; color: #e2e8f0; }
+
+.ana { margin-left: 220px; flex: 1; padding: 28px; min-height: 100vh; }
+.sayfa-baslik { font-size: 22px; font-weight: 800; margin-bottom: 24px; }
+.sekme { display: none; }
+.sekme.aktif { display: block; }
+
+.istat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+.istat-kart { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 18px 20px; }
+.istat-kart .etiket { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+.istat-kart .deger { font-size: 28px; font-weight: 800; }
+
+.tablo-kart { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+.tablo-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #1e293b; }
+.tablo-baslik { font-size: 14px; font-weight: 700; }
+.ara-input { background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 7px 12px; color: #e2e8f0; font-size: 12px; outline: none; width: 220px; }
+.ara-input:focus { border-color: #6366f1; }
+
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 16px; font-size: 11px; color: #64748b; text-align: left; text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid #1e293b; background: #0a0f1e; }
+td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #0f172a; }
+tr:hover td { background: rgba(255,255,255,.02); }
+tr:last-child td { border-bottom: none; }
+
+.risk-rozet { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.risk-low    { background: rgba(34,197,94,.15); color: #22c55e; }
+.risk-medium { background: rgba(245,158,11,.15); color: #f59e0b; }
+.risk-high   { background: rgba(239,68,68,.15); color: #ef4444; }
+.risk-none   { background: rgba(100,116,139,.15); color: #64748b; }
+
+.btn { padding: 7px 14px; border: none; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+.btn:hover { opacity: .85; }
+.btn-mavi    { background: #6366f1; color: #fff; }
+.btn-yesil   { background: #22c55e; color: #fff; }
+.btn-kirmizi { background: #ef4444; color: #fff; }
+.btn-gri     { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+
+.modal-arka { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 1000; align-items: center; justify-content: center; }
+.modal-arka.acik { display: flex; }
+.modal { background: #0f172a; border: 1px solid #334155; border-radius: 14px; padding: 28px; width: 420px; max-width: 95vw; }
+.modal-baslik { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.modal-alan { margin-bottom: 14px; }
+.modal-alan label { display: block; font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.modal-alan input { width: 100%; padding: 10px 12px; background: #020617; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-size: 13px; outline: none; }
+.modal-alan input:focus { border-color: #6366f1; }
+.modal-butonlar { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.modal-hata { color: #ef4444; font-size: 12px; margin-top: 8px; }
+
+.detay-kart { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.detay-baslik { font-size: 14px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.geri-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 7px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+.geri-btn:hover { color: #e2e8f0; }
+
+.stat-mini-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
+.stat-mini { background: #020617; border: 1px solid #1e293b; border-radius: 9px; padding: 12px 14px; text-align: center; }
+.stat-mini .val { font-size: 20px; font-weight: 800; }
+.stat-mini .lbl { font-size: 10px; color: #64748b; margin-top: 2px; text-transform: uppercase; }
+
+.tahmin-kart { background: #020617; border: 1px solid #1e293b; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.tahmin-kart .ust { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.tahmin-tarih { font-size: 11px; color: #64748b; }
+.risk-item { padding: 6px 0; border-bottom: 1px solid #1e293b; font-size: 12px; }
+.risk-item:last-child { border-bottom: none; }
+.risk-item-ust { display: flex; justify-content: space-between; }
+.risk-mini-bar { height: 3px; background: #1e293b; border-radius: 2px; margin-top: 4px; }
+.risk-mini-ic  { height: 100%; border-radius: 2px; background: #6366f1; }
+.bos-mesaj { text-align: center; padding: 32px; color: #475569; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ==================== GİRİŞ EKRANI ==================== -->
+<div id="login-ekran">
+  <div class="login-kutu">
+    <div class="login-logo">
+      <div class="ikon" style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#22d3ee);display:inline-flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="36">
+          <circle cx="12" cy="5" r="4" fill="white"/>
+          <line x1="12" y1="9" x2="12" y2="24" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="12" cy="13" r="1.3" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="12" cy="17.5" r="1.3" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="12" cy="22" r="1.3" fill="rgba(255,255,255,0.45)"/>
+          <line x1="4" y1="14" x2="20" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4" y1="14" x2="2" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+          <line x1="20" y1="14" x2="22" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+          <line x1="8" y1="24" x2="16" y2="24" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="10" y1="24" x2="9" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+          <line x1="14" y1="24" x2="15" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+        </svg>
+      </div>
+      <h1>Dik<span>Dur</span></h1>
+      <div class="rozet">ADMİN PANELİ</div>
+    </div>
+    <div class="hata-kutu" id="login-hata"></div>
+    <form onsubmit="adminGirisYap(event)">
+      <div class="form-alan">
+        <label>E-posta</label>
+        <input type="email" id="login-email" placeholder="admin@posturtakip.com" required autocomplete="email">
+      </div>
+      <div class="form-alan">
+        <label>Şifre</label>
+        <input type="password" id="login-sifre" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="giris-btn" id="login-btn">Giriş Yap</button>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== ADMİN PANELİ ==================== -->
+<div id="admin-ekran">
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="kutu">
+        <svg viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="17" height="22">
+          <circle cx="12" cy="5" r="4" fill="white"/>
+          <line x1="12" y1="9" x2="12" y2="24" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="12" cy="13" r="1.3" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="12" cy="17.5" r="1.3" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="12" cy="22" r="1.3" fill="rgba(255,255,255,0.45)"/>
+          <line x1="4" y1="14" x2="20" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="4" y1="14" x2="2" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+          <line x1="20" y1="14" x2="22" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+          <line x1="8" y1="24" x2="16" y2="24" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <line x1="10" y1="24" x2="9" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+          <line x1="14" y1="24" x2="15" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
+        </svg>
+      </div>
+      <div class="yazi">Dik<span>Dur</span> <span class="rozet">ADMİN</span></div>
+    </div>
+    <div class="nav-item aktif" onclick="sekmeGoster('genel')">
+      <span class="ikon">📊</span><span>Genel Bakış</span>
+    </div>
+    <div class="nav-item" onclick="sekmeGoster('kullanicilar')">
+      <span class="ikon">👥</span><span>Kullanıcılar</span>
+    </div>
+    <div class="sidebar-bottom">
+      <button class="cikis-btn" onclick="cikisYap()">🚪 Çıkış Yap</button>
+    </div>
+  </div>
+
+  <div class="ana">
+
+    <!-- GENEL BAKIŞ -->
+    <div class="sekme aktif" id="sekme-genel">
+      <div class="sayfa-baslik">📊 Genel Bakış</div>
+      <div class="istat-grid">
+        <div class="istat-kart"><div class="etiket">Toplam Kullanıcı</div><div class="deger" id="st-kullanici" style="color:#22d3ee">–</div></div>
+        <div class="istat-kart"><div class="etiket">Toplam Kayıt</div><div class="deger" id="st-kayit" style="color:#6366f1">–</div></div>
+        <div class="istat-kart"><div class="etiket">Ortalama Skor</div><div class="deger" id="st-skor" style="color:#22c55e">–</div></div>
+        <div class="istat-kart"><div class="etiket">Yüksek Risk</div><div class="deger" id="st-risk" style="color:#ef4444">–</div></div>
+      </div>
+      <div class="tablo-kart">
+        <div class="tablo-header"><div class="tablo-baslik">Kullanıcı Listesi</div></div>
+        <table>
+          <thead><tr><th>Kullanıcı</th><th>E-posta</th><th>Kayıt Sayısı</th><th>Ort. Skor</th><th>Son Risk</th><th>Kayıt Tarihi</th></tr></thead>
+          <tbody id="genel-tablo"><tr><td colspan="6" class="bos-mesaj">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KULLANICILAR -->
+    <div class="sekme" id="sekme-kullanicilar">
+      <div class="sayfa-baslik">👥 Kullanıcı Yönetimi</div>
+      <div class="tablo-kart">
+        <div class="tablo-header">
+          <div class="tablo-baslik">Tüm Kullanıcılar</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input class="ara-input" id="kullanici-ara" placeholder="Ada veya e-postaya göre ara…" oninput="kullanicilariFiltrele()">
+            <button class="btn btn-yesil" onclick="kullaniciEkleModalAc()">+ Kullanıcı Ekle</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Ad Soyad</th><th>E-posta</th><th>Kayıt</th><th>Ort. Skor</th><th>Son Risk</th><th>Üyelik</th><th>İşlemler</th></tr></thead>
+          <tbody id="kullanici-tablo"><tr><td colspan="7" class="bos-mesaj">Yükleniyor…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KAYITLAR -->
+    <div class="sekme" id="sekme-kayitlar">
+      <div class="sayfa-baslik">📋 Postur Kayıtları</div>
+      <div id="kayit-secim" style="text-align:center;padding:48px;color:#475569">
+        <div style="font-size:40px;margin-bottom:12px">👆</div>
+        Kayıtlarını görmek için Kullanıcılar sekmesinden bir kullanıcı seçin.
+      </div>
+      <div id="kayit-detay" style="display:none">
+        <div class="detay-kart">
+          <div class="detay-baslik">
+            <button class="geri-btn" onclick="sekmeGoster('kullanicilar')">← Geri</button>
+            <span id="kayit-kullanici-adi">–</span>
+          </div>
+          <div class="stat-mini-grid" id="kayit-stats"></div>
+        </div>
+        <div class="tablo-kart">
+          <div class="tablo-header"><div class="tablo-baslik">Son 200 Kayıt</div></div>
+          <table>
+            <thead><tr><th>Tarih/Saat</th><th>Skor</th><th>Boyun°</th><th>Omuz°</th><th>Gerginlik%</th><th>Durum</th></tr></thead>
+            <tbody id="kayit-tablo"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAĞLIK RİSKLERİ -->
+    <div class="sekme" id="sekme-saglik">
+      <div class="sayfa-baslik">🧠 Sağlık Risk Tahminleri</div>
+      <div id="saglik-secim" style="text-align:center;padding:48px;color:#475569">
+        <div style="font-size:40px;margin-bottom:12px">👆</div>
+        Sağlık risklerini görmek için Kullanıcılar sekmesinden bir kullanıcı seçin.
+      </div>
+      <div id="saglik-detay" style="display:none">
+        <div class="detay-kart">
+          <div class="detay-baslik">
+            <button class="geri-btn" onclick="sekmeGoster('kullanicilar')">← Geri</button>
+            <span id="saglik-kullanici-adi">–</span>
+          </div>
+        </div>
+        <div id="saglik-liste"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- KULLANICI EKLE MODAL -->
+<div class="modal-arka" id="ekle-modal">
+  <div class="modal">
+    <div class="modal-baslik">+ Yeni Kullanıcı Ekle</div>
+    <div class="modal-alan"><label>Ad Soyad</label><input id="ek-ad" placeholder="Adı Soyadı" type="text"></div>
+    <div class="modal-alan"><label>E-posta</label><input id="ek-email" placeholder="ornek@mail.com" type="email"></div>
+    <div class="modal-alan"><label>Şifre</label><input id="ek-sifre" placeholder="En az 6 karakter" type="password"></div>
+    <div class="modal-hata" id="ek-hata"></div>
+    <div class="modal-butonlar">
+      <button class="btn btn-gri" onclick="modalKapat('ekle-modal')">İptal</button>
+      <button class="btn btn-yesil" onclick="kullaniciEkle()">Ekle</button>
+    </div>
+  </div>
+</div>
+
+<!-- SİL ONAY MODAL -->
+<div class="modal-arka" id="sil-modal">
+  <div class="modal">
+    <div class="modal-baslik">⚠ Kullanıcıyı Sil</div>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:16px">
+      <strong id="sil-ad" style="color:#ef4444">–</strong> adlı kullanıcı ve tüm postur kayıtları kalıcı olarak silinecek.
+    </p>
+    <div class="modal-butonlar">
+      <button class="btn btn-gri" onclick="modalKapat('sil-modal')">İptal</button>
+      <button class="btn btn-kirmizi" onclick="kullaniciSil()">Evet, Sil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var API   = '/api';
+var token = null;
+
+// ============================================================
+// GİRİŞ / ÇIKIŞ
+// ============================================================
+function adminPanelGoster() {
+  document.getElementById('login-ekran').style.display = 'none';
+  document.getElementById('admin-ekran').style.display = 'flex';
+  genelYukle();
+}
+
+function loginEkraniGoster() {
+  token = null;
+  localStorage.removeItem('pt_token');
+  localStorage.removeItem('pt_user');
+  document.getElementById('admin-ekran').style.display = 'none';
+  document.getElementById('login-ekran').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-sifre').value = '';
+  document.getElementById('login-hata').style.display = 'none';
+}
+
+async function adminGirisYap(e) {
+  e.preventDefault();
+  var btn   = document.getElementById('login-btn');
+  var email = document.getElementById('login-email').value.trim();
+  var sifre = document.getElementById('login-sifre').value;
+  var hata  = document.getElementById('login-hata');
+
+  btn.disabled = true;
+  btn.textContent = 'Giriş yapılıyor…';
+  hata.style.display = 'none';
+
+  try {
+    var resp = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: sifre }),
+    });
+    var data = await resp.json();
+
+    if (!resp.ok) {
+      hata.textContent = data.error || 'Giriş başarısız';
+      hata.style.display = 'block';
+    } else if (data.user.role !== 'admin') {
+      hata.textContent = 'Bu hesabın admin yetkisi yok.';
+      hata.style.display = 'block';
+    } else {
+      token = data.token;
+      localStorage.setItem('pt_token', token);
+      localStorage.setItem('pt_user', JSON.stringify(data.user));
+      adminPanelGoster();
+    }
+  } catch (err) {
+    hata.textContent = 'Sunucuya bağlanılamadı';
+    hata.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Giriş Yap';
+  }
+}
+
+function cikisYap() {
+  loginEkraniGoster();
+}
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+}
+
+// Sayfa açıldığında: daha önce giriş yapıldıysa paneli göster
+(function() {
+  var kayitliToken = localStorage.getItem('pt_token');
+  var kayitliUser  = null;
+  try { kayitliUser = JSON.parse(localStorage.getItem('pt_user')); } catch {}
+
+  if (kayitliToken && kayitliUser && kayitliUser.role === 'admin') {
+    token = kayitliToken;
+    adminPanelGoster();
+  } else {
+    // Temizle, login ekranı göster
+    localStorage.removeItem('pt_token');
+    localStorage.removeItem('pt_user');
+    document.getElementById('login-ekran').style.display = 'flex';
+  }
+})();
+
+// ============================================================
+// SEKME YÖNETİMİ
+// ============================================================
+function sekmeGoster(id) {
+  document.querySelectorAll('.sekme').forEach(function(s) { s.classList.remove('aktif'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('aktif'); });
+  document.getElementById('sekme-' + id).classList.add('aktif');
+  var sira = ['genel','kullanicilar'];
+  var idx = sira.indexOf(id);
+  if (idx >= 0) document.querySelectorAll('.nav-item')[idx].classList.add('aktif');
+  if (id === 'genel')        genelYukle();
+  if (id === 'kullanicilar') kullanicilariYukle();
+}
+
+// ============================================================
+// GENEL BAKIŞ
+// ============================================================
+async function genelYukle() {
+  try {
+    var r1 = await fetch(API + '/admin/stats', { headers: authHeaders() });
+    var r2 = await fetch(API + '/admin/users', { headers: authHeaders() });
+    if (r1.status === 401 || r1.status === 403) { loginEkraniGoster(); return; }
+    var stats = await r1.json();
+    var data  = await r2.json();
+
+    document.getElementById('st-kullanici').textContent = stats.kullanici_sayisi || 0;
+    document.getElementById('st-kayit').textContent     = stats.toplam_kayit    || 0;
+    document.getElementById('st-skor').textContent      = (stats.ortalama_skor  || 0) + '/100';
+    document.getElementById('st-risk').textContent      = stats.risk_yuksek     || 0;
+
+    var rM = { low:'Düşük', medium:'Orta', high:'Yüksek' };
+    var rS = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
+    var html = '';
+    (data.users || []).forEach(function(u) {
+      var r = u.son_risk || null;
+      html += '<tr>'
+        + '<td style="font-weight:600">' + kacSarakt(u.name) + '</td>'
+        + '<td style="color:#64748b">' + kacSarakt(u.email) + '</td>'
+        + '<td>' + (u.kayit_sayisi || 0) + '</td>'
+        + '<td>' + (u.ort_skor || '–') + '</td>'
+        + '<td>' + rozet(r, rM, rS) + '</td>'
+        + '<td style="color:#64748b">' + tarih(u.created_at) + '</td>'
+        + '</tr>';
+    });
+    document.getElementById('genel-tablo').innerHTML = html || '<tr><td colspan="6" class="bos-mesaj">Henüz kullanıcı yok</td></tr>';
+  } catch (e) {
+    document.getElementById('genel-tablo').innerHTML = '<tr><td colspan="6" class="bos-mesaj">Yüklenemedi</td></tr>';
+  }
+}
+
+// ============================================================
+// KULLANICILAR
+// ============================================================
+var tumKullanicilar = [];
+
+async function kullanicilariYukle() {
+  try {
+    var resp = await fetch(API + '/admin/users', { headers: authHeaders() });
+    if (resp.status === 401 || resp.status === 403) { loginEkraniGoster(); return; }
+    var data = await resp.json();
+    tumKullanicilar = data.users || [];
+    kullanicilariGoster(tumKullanicilar);
+  } catch (e) {
+    document.getElementById('kullanici-tablo').innerHTML = '<tr><td colspan="7" class="bos-mesaj">Yüklenemedi</td></tr>';
+  }
+}
+
+function kullanicilariGoster(liste) {
+  var rM = { low:'Düşük', medium:'Orta', high:'Yüksek' };
+  var rS = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
+  var html = '';
+  liste.forEach(function(u) {
+    var r = u.son_risk || null;
+    var ad = kacSarakt(u.name);
+    html += '<tr>'
+      + '<td style="font-weight:600">' + ad + '</td>'
+      + '<td style="color:#64748b;font-size:12px">' + kacSarakt(u.email) + '</td>'
+      + '<td>' + (u.kayit_sayisi || 0) + '</td>'
+      + '<td>' + (u.ort_skor ? '<span style="font-weight:700">' + u.ort_skor + '</span>' : '–') + '</td>'
+      + '<td>' + rozet(r, rM, rS) + '</td>'
+      + '<td style="color:#64748b;font-size:12px">' + tarih(u.created_at) + '</td>'
+      + '<td style="display:flex;gap:6px">'
+        + '<button class="btn btn-mavi" onclick="kullaniciKayitlariGor(\'' + u.id + '\',\'' + ad + '\')">Kayıtlar</button>'
+        + '<button class="btn btn-gri"  onclick="kullaniciSaglikGor(\'' + u.id + '\',\'' + ad + '\')">Sağlık</button>'
+        + '<button class="btn btn-kirmizi" onclick="silOnay(\'' + u.id + '\',\'' + ad + '\')">Sil</button>'
+      + '</td>'
+      + '</tr>';
+  });
+  document.getElementById('kullanici-tablo').innerHTML = html || '<tr><td colspan="7" class="bos-mesaj">Kullanıcı bulunamadı</td></tr>';
+}
+
+function kullanicilariFiltrele() {
+  var ara = document.getElementById('kullanici-ara').value.toLowerCase();
+  kullanicilariGoster(tumKullanicilar.filter(function(u) {
+    return u.name.toLowerCase().includes(ara) || u.email.toLowerCase().includes(ara);
+  }));
+}
+
+// ============================================================
+// KAYITLAR
+// ============================================================
+async function kullaniciKayitlariGor(userId, userName) {
+  sekmeGoster('kayitlar');
+  document.getElementById('kayit-secim').style.display = 'none';
+  document.getElementById('kayit-detay').style.display = 'block';
+  document.getElementById('kayit-kullanici-adi').textContent = userName + ' – Postur Kayıtları';
+  document.getElementById('kayit-tablo').innerHTML = '<tr><td colspan="6" class="bos-mesaj">Yükleniyor…</td></tr>';
+  document.getElementById('kayit-stats').innerHTML = '';
+
+  try {
+    var r1 = await fetch(API + '/admin/users/' + userId,           { headers: authHeaders() });
+    var r2 = await fetch(API + '/admin/users/' + userId + '/records', { headers: authHeaders() });
+    var detay   = await r1.json();
+    var records = await r2.json();
+
+    var s = detay.stats || {};
+    document.getElementById('kayit-stats').innerHTML =
+      miniStat(s.toplam_kayit || 0,         'Toplam Kayıt', '#6366f1') +
+      miniStat((s.ort_skor || '–'),          'Ort. Skor',   '#22c55e') +
+      miniStat('%' + (s.iyi_yuzde  || 0),   'İyi Duruş',   '#22d3ee') +
+      miniStat('%' + (s.kotu_yuzde || 0),   'Kötü Duruş',  '#ef4444') +
+      miniStat((s.ort_boyun || '–') + '°',  'Ort. Boyun',  '#f59e0b') +
+      miniStat('%' + (s.ort_gerginlik || '–'), 'Gerginlik', '#f97316');
+
+    var rRenk = { good:'#22c55e', warning:'#f59e0b', bad:'#ef4444' };
+    var rMetin = { good:'İyi', warning:'Uyarı', bad:'Kötü' };
+    var html = '';
+    (records.records || []).forEach(function(r) {
+      html += '<tr>'
+        + '<td style="font-size:12px;color:#64748b">' + new Date(r.recorded_at).toLocaleString('tr-TR') + '</td>'
+        + '<td style="font-weight:700;color:' + (r.score>=80?'#22c55e':r.score>=60?'#f59e0b':'#ef4444') + '">' + r.score + '</td>'
+        + '<td>' + (r.neck_angle    || '–') + '</td>'
+        + '<td>' + (r.shoulder_tilt || '–') + '</td>'
+        + '<td>' + (r.tension       || '–') + '</td>'
+        + '<td><span style="color:' + (rRenk[r.status]||'#94a3b8') + ';font-weight:600">' + (rMetin[r.status]||r.status) + '</span></td>'
+        + '</tr>';
+    });
+    document.getElementById('kayit-tablo').innerHTML = html || '<tr><td colspan="6" class="bos-mesaj">Kayıt bulunamadı</td></tr>';
+  } catch (e) {
+    document.getElementById('kayit-tablo').innerHTML = '<tr><td colspan="6" class="bos-mesaj">Yüklenemedi</td></tr>';
+  }
+}
+
+// ============================================================
+// SAĞLIK RİSKLERİ
+// ============================================================
+async function kullaniciSaglikGor(userId, userName) {
+  sekmeGoster('saglik');
+  document.getElementById('saglik-secim').style.display = 'none';
+  document.getElementById('saglik-detay').style.display = 'block';
+  document.getElementById('saglik-kullanici-adi').textContent = userName + ' – Sağlık Geçmişi';
+  document.getElementById('saglik-liste').innerHTML = '<div class="bos-mesaj">Yükleniyor…</div>';
+
+  try {
+    var resp = await fetch(API + '/admin/users/' + userId + '/health', { headers: authHeaders() });
+    var data = await resp.json();
+    var rS = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
+    var rM = { low:'Düşük Risk', medium:'Orta Risk', high:'Yüksek Risk' };
+
+    var html = '';
+    (data.predictions || []).forEach(function(p) {
+      var parsed = null;
+      try { parsed = JSON.parse(p.prediction_text); } catch { parsed = p; }
+      html += '<div class="tahmin-kart">';
+      html += '<div class="ust"><span class="risk-rozet ' + (rS[p.risk_level]||'risk-none') + '">' + (rM[p.risk_level]||p.risk_level) + '</span>'
+        + '<span class="tahmin-tarih">' + new Date(p.created_at).toLocaleString('tr-TR') + ' · ' + (p.model_used||'–') + '</span></div>';
+      if (parsed && parsed.summary) html += '<p style="font-size:13px;color:#94a3b8;margin-bottom:10px">' + parsed.summary + '</p>';
+      if (parsed && parsed.risks) {
+        parsed.risks.forEach(function(r) {
+          var pct = Math.round((r.probability||0)*100);
+          html += '<div class="risk-item"><div class="risk-item-ust"><span style="font-size:12px;font-weight:600">' + r.name + '</span><span style="font-size:11px;color:#64748b">%' + pct + '</span></div>'
+            + '<div class="risk-mini-bar"><div class="risk-mini-ic" style="width:' + pct + '%"></div></div>'
+            + '<div style="font-size:11px;color:#64748b;margin-top:3px">' + (r.description||'') + '</div></div>';
+        });
+      }
+      if (parsed && parsed.recommendations && parsed.recommendations.length) {
+        html += '<div style="margin-top:10px;font-size:11px;color:#64748b"><strong style="color:#22d3ee;display:block;margin-bottom:4px">ÖNERİLER</strong>';
+        parsed.recommendations.forEach(function(r) { html += '<div>• ' + r + '</div>'; });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    document.getElementById('saglik-liste').innerHTML = html || '<div class="bos-mesaj">Henüz sağlık tahmini yok.</div>';
+  } catch (e) {
+    document.getElementById('saglik-liste').innerHTML = '<div class="bos-mesaj">Yüklenemedi</div>';
+  }
+}
+
+// ============================================================
+// KULLANICI EKLE / SİL
+// ============================================================
+function kullaniciEkleModalAc() {
+  document.getElementById('ek-ad').value    = '';
+  document.getElementById('ek-email').value = '';
+  document.getElementById('ek-sifre').value = '';
+  document.getElementById('ek-hata').textContent = '';
+  document.getElementById('ekle-modal').classList.add('acik');
+}
+
+function modalKapat(id) {
+  document.getElementById(id).classList.remove('acik');
+}
+
+async function kullaniciEkle() {
+  var ad    = document.getElementById('ek-ad').value.trim();
+  var email = document.getElementById('ek-email').value.trim();
+  var sifre = document.getElementById('ek-sifre').value;
+  var hata  = document.getElementById('ek-hata');
+  hata.textContent = '';
+
+  if (!ad || !email || !sifre) { hata.textContent = 'Tüm alanları doldurun'; return; }
+  try {
+    var resp = await fetch(API + '/admin/users', {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ name: ad, email: email, password: sifre }),
+    });
+    var data = await resp.json();
+    if (!resp.ok) { hata.textContent = data.error || 'Hata oluştu'; return; }
+    modalKapat('ekle-modal');
+    kullanicilariYukle();
+  } catch { hata.textContent = 'Sunucu hatası'; }
+}
+
+var silinecekId = null;
+function silOnay(id, ad) {
+  silinecekId = id;
+  document.getElementById('sil-ad').textContent = ad;
+  document.getElementById('sil-modal').classList.add('acik');
+}
+
+async function kullaniciSil() {
+  if (!silinecekId) return;
+  try {
+    await fetch(API + '/admin/users/' + silinecekId, { method: 'DELETE', headers: authHeaders() });
+  } catch {}
+  modalKapat('sil-modal');
+  silinecekId = null;
+  kullanicilariYukle();
+}
+
+// ============================================================
+// YARDIMCI FONKSİYONLAR
+// ============================================================
+function miniStat(val, lbl, renk) {
+  return '<div class="stat-mini"><div class="val" style="color:' + renk + '">' + val + '</div><div class="lbl">' + lbl + '</div></div>';
+}
+function rozet(risk, rM, rS) {
+  if (!risk) return '<span class="risk-rozet risk-none">–</span>';
+  return '<span class="risk-rozet ' + (rS[risk]||'risk-none') + '">' + (rM[risk]||risk) + '</span>';
+}
+function tarih(d) { return d ? new Date(d).toLocaleDateString('tr-TR') : '–'; }
+function kacSarakt(s) { return String(s||'').replace(/'/g, '&#39;'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DikDur – Giriş</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #020617;
+  color: #e2e8f0;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sayfa {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px 16px;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.logo-kutu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1, #22d3ee);
+  font-size: 26px;
+  margin-bottom: 12px;
+}
+.logo-yazi { font-size: 22px; font-weight: 800; }
+.logo-yazi span { color: #22d3ee; }
+.logo-alt { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+.kart {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 32px 28px;
+}
+
+.tabs {
+  display: flex;
+  background: #020617;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 28px;
+  gap: 4px;
+}
+.tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #64748b;
+  transition: all 0.2s;
+}
+.tab.aktif {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.form { display: flex; flex-direction: column; gap: 16px; }
+
+.alan label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.alan input {
+  width: 100%;
+  padding: 11px 14px;
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 9px;
+  color: #e2e8f0;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.alan input:focus { border-color: #6366f1; }
+.alan input.hata { border-color: #ef4444; }
+
+.hata-mesaj {
+  display: none;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #fca5a5;
+}
+.hata-mesaj.goster { display: block; }
+
+.basari-mesaj {
+  display: none;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #86efac;
+}
+.basari-mesaj.goster { display: block; }
+
+.gonder-btn {
+  padding: 12px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  border: none;
+  border-radius: 9px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 4px;
+}
+.gonder-btn:hover   { opacity: 0.9; }
+.gonder-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ayirac {
+  text-align: center;
+  font-size: 12px;
+  color: #475569;
+  margin: 4px 0;
+}
+
+.panel { display: none; }
+.panel.aktif { display: block; }
+
+.giris-bilgi {
+  margin-top: 24px;
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.7;
+}
+.giris-bilgi strong { color: #818cf8; }
+</style>
+</head>
+<body>
+
+<div class="sayfa">
+  <div class="logo">
+    <div class="logo-yazi">Dik<span>Dur</span></div>
+    <div class="logo-alt">AI Destekli Duruş Analiz Sistemi</div>
+  </div>
+
+  <div class="kart">
+    <div class="tabs">
+      <button class="tab aktif" onclick="sekmeDegistir('giris')">Giriş Yap</button>
+      <button class="tab"       onclick="sekmeDegistir('kayit')">Kayıt Ol</button>
+    </div>
+
+    <!-- GİRİŞ PANELİ -->
+    <div class="panel aktif" id="panel-giris">
+      <form class="form" onsubmit="girisYap(event)">
+        <div id="giris-hata"   class="hata-mesaj"></div>
+        <div id="giris-basari" class="basari-mesaj"></div>
+
+        <div class="alan">
+          <label>E-posta</label>
+          <input type="email" id="giris-email" placeholder="ornek@mail.com" required>
+        </div>
+        <div class="alan">
+          <label>Şifre</label>
+          <input type="password" id="giris-sifre" placeholder="••••••" required>
+        </div>
+        <button type="submit" class="gonder-btn" id="giris-btn">Giriş Yap</button>
+        <div style="text-align:center;margin-top:4px">
+          <a href="#" onclick="sifreModalAc()" style="font-size:12px;color:#64748b;text-decoration:none">Şifremi unuttum</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- KAYIT PANELİ -->
+    <div class="panel" id="panel-kayit">
+      <form class="form" onsubmit="kayitOl(event)">
+        <div id="kayit-hata"   class="hata-mesaj"></div>
+        <div id="kayit-basari" class="basari-mesaj"></div>
+
+        <div class="alan">
+          <label>Ad Soyad</label>
+          <input type="text" id="kayit-ad" placeholder="Adınız Soyadınız" required>
+        </div>
+        <div class="alan">
+          <label>E-posta</label>
+          <input type="email" id="kayit-email" placeholder="ornek@mail.com" required>
+        </div>
+        <div class="alan">
+          <label>Şifre</label>
+          <input type="password" id="kayit-sifre" placeholder="En az 6 karakter" minlength="6" required>
+        </div>
+        <button type="submit" class="gonder-btn" id="kayit-btn">Kayıt Ol</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="giris-bilgi">
+    <strong>DikDur nedir?</strong><br>
+    Gerçek zamanlı kamera analizi ile duruşunuzu takip eder.<br>
+    AI tabanlı sağlık tahmini ve kişisel egzersiz programı sunar.<br>
+    Tüm verileriniz şifrelenmiş olarak güvenle saklanır.
+  </div>
+</div>
+
+<script>
+var API = '/api';
+
+function sekmeDegistir(sekme) {
+  document.querySelectorAll('.tab').forEach(function(t, i) {
+    t.classList.toggle('aktif', (i === 0 && sekme === 'giris') || (i === 1 && sekme === 'kayit'));
+  });
+  document.getElementById('panel-giris').classList.toggle('aktif', sekme === 'giris');
+  document.getElementById('panel-kayit').classList.toggle('aktif', sekme === 'kayit');
+}
+
+function gosterHata(prefix, mesaj) {
+  var el = document.getElementById(prefix + '-hata');
+  el.textContent = mesaj;
+  el.classList.add('goster');
+  document.getElementById(prefix + '-basari').classList.remove('goster');
+}
+
+function gosterBasari(prefix, mesaj) {
+  var el = document.getElementById(prefix + '-basari');
+  el.textContent = mesaj;
+  el.classList.add('goster');
+  document.getElementById(prefix + '-hata').classList.remove('goster');
+}
+
+function tokenKaydet(token, user) {
+  localStorage.setItem('pt_token', token);
+  localStorage.setItem('pt_user', JSON.stringify(user));
+}
+
+async function girisYap(e) {
+  e.preventDefault();
+  var btn   = document.getElementById('giris-btn');
+  var email = document.getElementById('giris-email').value.trim();
+  var sifre = document.getElementById('giris-sifre').value;
+
+  btn.disabled    = true;
+  btn.textContent = 'Giriş yapılıyor…';
+
+  try {
+    var resp = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: sifre }),
+    });
+    var data = await resp.json();
+
+    if (!resp.ok) {
+      gosterHata('giris', data.error || 'Giriş başarısız');
+    } else {
+      tokenKaydet(data.token, data.user);
+      gosterBasari('giris', 'Hoş geldiniz ' + data.user.name + '! Yönlendiriliyorsunuz…');
+      var hedef = data.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+      setTimeout(function() { window.location.href = hedef; }, 900);
+    }
+  } catch {
+    gosterHata('giris', 'Sunucuya bağlanılamadı');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Giriş Yap';
+  }
+}
+
+async function kayitOl(e) {
+  e.preventDefault();
+  var btn   = document.getElementById('kayit-btn');
+  var ad    = document.getElementById('kayit-ad').value.trim();
+  var email = document.getElementById('kayit-email').value.trim();
+  var sifre = document.getElementById('kayit-sifre').value;
+
+  btn.disabled    = true;
+  btn.textContent = 'Kayıt yapılıyor…';
+
+  try {
+    var resp = await fetch(API + '/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: ad, email: email, password: sifre }),
+    });
+    var data = await resp.json();
+
+    if (!resp.ok) {
+      gosterHata('kayit', data.error || 'Kayıt başarısız');
+    } else {
+      tokenKaydet(data.token, data.user);
+      gosterBasari('kayit', 'Hesabınız oluşturuldu! Yönlendiriliyorsunuz…');
+      setTimeout(function() { window.location.href = 'dashboard.html'; }, 900);
+    }
+  } catch {
+    gosterHata('kayit', 'Sunucuya bağlanılamadı');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = 'Kayıt Ol';
+  }
+}
+
+// Otomatik yonlendirme yok - her zaman login formu gosterilir
+
+// ── Şifre Sıfırlama Modalı ────────────────────────────────────
+function sifreModalAc() {
+  document.getElementById('sifreModal').style.display = 'flex';
+}
+function sifreModalKapat() {
+  document.getElementById('sifreModal').style.display = 'none';
+  document.getElementById('sifreModalMesaj').textContent = '';
+  document.getElementById('sifreEmail').value = '';
+}
+async function sifreTalep() {
+  var email  = document.getElementById('sifreEmail').value.trim();
+  var mesajEl = document.getElementById('sifreModalMesaj');
+  if (!email) { mesajEl.style.color='#ef4444'; mesajEl.textContent='E-posta adresinizi girin.'; return; }
+  var btn = document.getElementById('sifreTalepBtn');
+  btn.disabled = true; btn.textContent = 'Gönderiliyor…';
+  try {
+    var r = await fetch(API + '/auth/forgot-password', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    var d = await r.json();
+    mesajEl.style.color = r.ok ? '#22c55e' : '#ef4444';
+    mesajEl.textContent = d.message || d.error || 'Hata oluştu.';
+  } catch { mesajEl.style.color='#ef4444'; mesajEl.textContent='Bağlantı hatası.'; }
+  finally { btn.disabled = false; btn.textContent = 'Sıfırlama Bağlantısı Gönder'; }
+}
+</script>
+
+<!-- Şifre Sıfırlama Modalı -->
+<div id="sifreModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0f172a;border:1px solid #1e293b;border-radius:16px;width:100%;max-width:380px;padding:28px;position:relative;">
+    <button onclick="sifreModalKapat()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#64748b;font-size:20px;cursor:pointer">✕</button>
+    <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:#e2e8f0">🔑 Şifremi Unuttum</div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:16px;line-height:1.6">
+      Kayıtlı e-posta adresinizi girin. Şifre sıfırlama bağlantısı göndereceğiz.
+    </p>
+    <input id="sifreEmail" type="email" placeholder="ornek@mail.com"
+      style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#e2e8f0;font-size:13px;margin-bottom:12px;box-sizing:border-box">
+    <button id="sifreTalepBtn" onclick="sifreTalep()"
+      style="width:100%;background:#6366f1;color:white;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer">
+      Sıfırlama Bağlantısı Gönder
+    </button>
+    <div id="sifreModalMesaj" style="font-size:12px;margin-top:10px;min-height:16px;text-align:center"></div>
+  </div>
+</div>
+</body>
+</html>

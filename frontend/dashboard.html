@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DikDur – Dashboard</title>
+<style>
+
+/* ====== AYDINLIK MOD ====== */
+body.aydinlik {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+body.aydinlik header,
+body.aydinlik .nav-tabs         { background: #ffffff !important; border-color: #e2e8f0 !important; }
+body.aydinlik .nav-tab          { color: #64748b !important; }
+body.aydinlik .nav-tab.aktif    { color: #6366f1 !important; border-bottom-color: #6366f1 !important; }
+body.aydinlik .skor-kart,
+body.aydinlik .metrik-kart,
+body.aydinlik .uyari-kart,
+body.aydinlik .ipucu-kart,
+body.aydinlik .stat-kutu,
+body.aydinlik .grafik-alan,
+body.aydinlik .gecmis-tablo,
+body.aydinlik .ai-kart          { background: #ffffff !important; border-color: #e2e8f0 !important; }
+body.aydinlik .halka-arka       { stroke: #e2e8f0 !important; }
+body.aydinlik .header-btn,
+body.aydinlik .durum-rozet,
+body.aydinlik .mola-pill        { background: #f1f5f9 !important; border-color: #e2e8f0 !important; color: #334155 !important; }
+body.aydinlik .metrik-satir     { border-color: #e2e8f0 !important; }
+body.aydinlik .bar-kap          { background: #e2e8f0 !important; }
+body.aydinlik .tablo-baslik     { background: #f1f5f9 !important; }
+body.aydinlik .tablo-satir:hover{ background: #f8fafc !important; }
+body.aydinlik .ai-sonuc         { background: #f8fafc !important; border-color: #e2e8f0 !important; }
+body.aydinlik .metrik-bilgi .alt,
+body.aydinlik #oturumSaati      { color: #64748b !important; }
+body.aydinlik .kart-baslik      { color: #64748b !important; }
+body.aydinlik .uyari-not        { color: #64748b !important; }
+
+body {
+  background: #020617;
+  color: #e2e8f0;
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  margin: 0; padding: 0;
+  transition: background .3s, color .3s;
+}
+
+/* kenar uyari efekti */
+#tehlikeBorder {
+  display: none;
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  border: 5px solid #ef4444;
+  pointer-events: none; z-index: 9000;
+  animation: kenarYan 1s ease-in-out infinite;
+}
+#tehlikeBorder.acik { display: block; }
+@keyframes kenarYan {
+  0%,100% { border-color: rgba(239,68,68,0.85); }
+  50%      { border-color: rgba(239,68,68,0.2); }
+}
+
+/* buyuk uyari overlay */
+#buyukUyari {
+  display: none;
+  position: fixed; top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  z-index: 9100; pointer-events: none; text-align: center;
+}
+#buyukUyari.goster {
+  display: block;
+  animation: cikAnim 0.35s ease-out;
+}
+@keyframes cikAnim {
+  from { transform:translate(-50%,-50%) scale(0.5); opacity:0; }
+  to   { transform:translate(-50%,-50%) scale(1);   opacity:1; }
+}
+#buyukUyari .baslik  { font-size:58px; font-weight:900; color:#ef4444; text-shadow:0 0 30px rgba(239,68,68,.9); }
+#buyukUyari .altYazi { font-size:19px; font-weight:600; color:#fca5a5; margin-top:10px; }
+
+/* mola ekrani */
+#molaEkrani {
+  display: none;
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(2,6,23,.96); z-index:9500;
+  flex-direction: column; align-items: center; justify-content: center; gap:22px;
+}
+#molaEkrani.acik { display:flex; animation: belir .4s ease; }
+@keyframes belir { from{opacity:0} to{opacity:1} }
+.mola-baslik   { font-size:36px; font-weight:900; color:#22d3ee; }
+.mola-aciklama { font-size:15px; color:#94a3b8; text-align:center; max-width:400px; line-height:1.6; }
+.egzersiz-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:520px; width:100%; }
+.egzersiz-kart { background:#0f172a; border:1px solid #334155; border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; }
+.egzersiz-kart .ikon { font-size:22px; }
+.egzersiz-kart .metin { font-size:13px; line-height:1.5; }
+.egzersiz-kart .metin strong { color:#22d3ee; display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px; margin-bottom:2px; }
+.mola-butonlar { display:flex; gap:12px; }
+.buton { padding:11px 26px; border-radius:9px; font-size:14px; font-weight:700; cursor:pointer; border:none; }
+.buton-ana { background:#6366f1; color:#fff; }
+.buton-gec { background:#1e293b; color:#94a3b8; border:1px solid #334155; }
+
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 26px; background:#0f172a; border-bottom:1px solid #334155;
+  position:sticky; top:0; z-index:100;
+}
+.logo-alani { display:flex; align-items:center; gap:10px; }
+.logo-kutu  { width:36px; height:36px; border-radius:9px; background:linear-gradient(135deg,#6366f1,#22d3ee); display:flex; align-items:center; justify-content:center; font-size:17px; }
+.logo-yazi  { font-size:17px; font-weight:800; }
+.logo-yazi span { color:#22d3ee; }
+.mola-pill  { display:flex; align-items:center; gap:8px; padding:7px 14px; background:#1e293b; border:1px solid #334155; border-radius:20px; font-size:12px; color:#94a3b8; cursor:pointer; }
+.mola-pill.yakin { border-color:#f59e0b; color:#f59e0b; }
+.mola-pill.simdi { border-color:#ef4444; color:#ef4444; }
+.sag-menu { display:flex; align-items:center; gap:10px; }
+#oturumSaati { font-size:12px; color:#94a3b8; }
+.header-btn { background:#1e293b; border:1px solid #334155; color:#94a3b8; border-radius:20px; padding:5px 13px; font-size:12px; cursor:pointer; }
+.durum-rozet { display:flex; align-items:center; gap:7px; padding:5px 12px; background:#1e293b; border:1px solid #334155; border-radius:20px; font-size:12px; color:#94a3b8; }
+.nokta { width:7px; height:7px; border-radius:50%; background:#94a3b8; }
+.nokta.canli { background:#22c55e; box-shadow:0 0 7px #22c55e; animation:yanip 2s infinite; }
+@keyframes yanip { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes ekranKirmizi {
+  0%,100% { box-shadow:inset 0 0 0 4px rgba(239,68,68,.9), inset 0 0 30px 6px rgba(239,68,68,.3); }
+  50%     { box-shadow:inset 0 0 0 4px rgba(239,68,68,.15), inset 0 0 8px 2px rgba(239,68,68,.05); }
+}
+#ekran-uyari {
+  position:fixed; inset:0; pointer-events:none; z-index:9998;
+  border-radius:0; opacity:0; transition:opacity .4s;
+}
+#ekran-uyari.aktif {
+  opacity:1;
+  animation:ekranKirmizi 1.2s ease-in-out infinite;
+}
+
+/* ana nav tablar */
+.nav-tabs { display:flex; gap:4px; padding:0 22px; background:#0f172a; border-bottom:1px solid #334155; }
+.nav-tab {
+  padding:10px 18px; font-size:13px; font-weight:600; color:#64748b;
+  border:none; background:none; cursor:pointer; border-bottom:2px solid transparent;
+  transition: all .2s;
+}
+.nav-tab.aktif { color:#22d3ee; border-bottom-color:#22d3ee; }
+
+.sekme { display:none; }
+.sekme.aktif { display:block; }
+
+/* KAMERA sekmesi */
+.icerik {
+  display:grid; grid-template-columns:660px 1fr; gap:18px;
+  padding:18px 22px; max-width:1380px; margin:0 auto;
+}
+.sol-sutun { display:flex; flex-direction:column; gap:14px; }
+.kamera-kutu { position:relative; width:640px; height:480px; border-radius:12px; overflow:hidden; border:2px solid #334155; background:#000; }
+#video,#canvas { position:absolute; top:0; left:0; width:640px; height:480px; }
+#video { transform: scaleX(-1); }
+#kameraCerceve { position:absolute; top:0; left:0; right:0; bottom:0; border-radius:12px; pointer-events:none; }
+#kameraCerceve.iyi  { border:3px solid #22c55e; }
+#kameraCerceve.kotu { border:3px solid #ef4444; }
+#kameraYazi { display:none; position:absolute; top:14px; left:50%; transform:translateX(-50%); padding:8px 18px; border-radius:7px; font-size:14px; font-weight:700; pointer-events:none; white-space:nowrap; z-index:5; }
+#kameraYazi.iyi  { display:block; background:rgba(34,197,94,.88); color:#fff; }
+#kameraYazi.kotu { display:block; background:rgba(239,68,68,.92); color:#fff; animation:salla .4s ease; }
+@keyframes salla { 0%,100%{transform:translateX(-50%) translateX(0)} 25%{transform:translateX(-50%) translateX(-5px)} 75%{transform:translateX(-50%) translateX(5px)} }
+
+.istatistikler { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.stat-kutu { background:#0f172a; border:1px solid #334155; border-radius:12px; padding:11px 12px; text-align:center; }
+.stat-kutu .etiket { font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:.6px; margin-bottom:4px; }
+.stat-kutu .deger  { font-size:22px; font-weight:800; }
+
+.sag-sutun { display:flex; flex-direction:column; gap:14px; }
+.skor-kart { background:#0f172a; border:1px solid #334155; border-radius:12px; padding:20px; text-align:center; }
+.kart-baslik { font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+.halka-sargisi { position:relative; display:inline-block; }
+.halka-svg { width:130px; height:130px; transform:rotate(-90deg); display:block; }
+.halka-arka { fill:none; stroke:#1e293b; stroke-width:11; }
+.halka-on   { fill:none; stroke-width:11; stroke-linecap:round; transition:stroke-dashoffset .7s ease,stroke .3s; }
+.halka-sayi { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:34px; font-weight:900; }
+.halka-aciklama { font-size:14px; font-weight:600; margin-top:6px; }
+
+.metrik-kart { background:#0f172a; border:1px solid #334155; border-radius:12px; padding:18px; }
+.metrik-satir { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid #334155; }
+.metrik-satir:last-child { border-bottom:none; }
+.metrik-bilgi .ad  { font-size:13px; font-weight:600; }
+.metrik-bilgi .alt { font-size:11px; color:#94a3b8; margin-top:2px; }
+.metrik-sag { display:flex; align-items:center; gap:9px; }
+.metrik-deger { font-size:17px; font-weight:700; width:50px; text-align:right; }
+.bar-kap { width:72px; height:5px; background:#1e293b; border-radius:3px; overflow:hidden; }
+.bar-ic  { height:100%; border-radius:3px; transition:width .4s ease,background .3s; }
+.durum-etiket { font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; min-width:50px; text-align:center; text-transform:uppercase; }
+.d-iyi  { background:rgba(34,197,94,.14);  color:#22c55e; }
+.d-orta { background:rgba(245,158,11,.14); color:#f59e0b; }
+.d-kotu { background:rgba(239,68,68,.14);  color:#ef4444; }
+.d-bos  { background:transparent; color:#94a3b8; }
+
+.uyari-kart { background:#0f172a; border:1px solid #334155; border-radius:12px; padding:18px; }
+.uyari-satir { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:1px solid #334155; font-size:13px; }
+.uyari-satir:last-child { border-bottom:none; }
+.uyari-ikon   { font-size:15px; flex-shrink:0; }
+.uyari-baslik { font-weight:500; }
+.uyari-not    { font-size:11px; color:#94a3b8; margin-top:2px; }
+.uyari-yok    { text-align:center; padding:16px; color:#22c55e; font-size:13px; }
+
+.ipucu-kart { background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(34,211,238,.08)); border:1px solid rgba(99,102,241,.3); border-radius:12px; padding:14px 16px; display:flex; gap:12px; align-items:flex-start; }
+.ipucu-ikon  { font-size:20px; flex-shrink:0; margin-top:1px; }
+.ipucu-metin { font-size:12px; color:#94a3b8; line-height:1.6; }
+.ipucu-metin strong { color:#22d3ee; font-size:11px; display:block; text-transform:uppercase; letter-spacing:.5px; margin-bottom:3px; }
+
+/* GECMiS ve AI sekmeleri */
+.sekme-icerik { padding:22px; max-width:1100px; margin:0 auto; }
+.panel-baslik { font-size:18px; font-weight:800; margin-bottom:18px; }
+
+.ai-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.ai-kart {
+  background:#0f172a; border:1px solid #334155; border-radius:14px; padding:22px;
+}
+.ai-kart-baslik { font-size:14px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.ai-kart-alt { font-size:12px; color:#64748b; margin-bottom:18px; }
+.ai-btn {
+  padding:10px 20px; border:none; border-radius:8px;
+  font-size:13px; font-weight:700; cursor:pointer;
+  background:linear-gradient(135deg,#6366f1,#4f46e5);
+  color:#fff; transition:opacity .2s; width:100%;
+}
+.ai-btn:hover    { opacity:.9; }
+.ai-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+.ai-sonuc {
+  margin-top:16px;
+  background:#020617; border:1px solid #1e293b;
+  border-radius:10px; padding:16px;
+  font-size:13px; line-height:1.7; color:#94a3b8;
+  display:none;
+}
+.ai-sonuc.goster { display:block; }
+
+.risk-badge { display:inline-block; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:10px; }
+.risk-low    { background:rgba(34,197,94,.15); color:#22c55e; }
+.risk-medium { background:rgba(245,158,11,.15); color:#f59e0b; }
+.risk-high   { background:rgba(239,68,68,.15);  color:#ef4444; }
+
+.risk-item { padding:8px 0; border-bottom:1px solid #1e293b; }
+.risk-item:last-child { border-bottom:none; }
+.risk-item-baslik { display:flex; justify-content:space-between; margin-bottom:4px; }
+.risk-item-ad   { font-size:12px; font-weight:600; color:#e2e8f0; }
+.risk-item-pct  { font-size:12px; color:#94a3b8; }
+.risk-mini-bar  { height:4px; background:#1e293b; border-radius:2px; overflow:hidden; }
+.risk-mini-ic   { height:100%; border-radius:2px; background:#6366f1; }
+
+.egz-item { padding:10px 0; border-bottom:1px solid #1e293b; }
+.egz-item:last-child { border-bottom:none; }
+.egz-item-baslik { font-size:13px; font-weight:700; color:#e2e8f0; margin-bottom:2px; }
+.egz-item-meta   { font-size:11px; color:#22d3ee; margin-bottom:4px; }
+.egz-item-acik   { font-size:12px; color:#94a3b8; line-height:1.5; }
+
+.gecmis-kontrol { display:flex; gap:10px; align-items:center; margin-bottom:18px; }
+.gun-btn { padding:6px 14px; background:#1e293b; border:1px solid #334155; color:#94a3b8; border-radius:8px; font-size:12px; cursor:pointer; }
+.gun-btn.aktif { background:#6366f1; border-color:#6366f1; color:#fff; }
+
+.grafik-alan {
+  background:#0f172a; border:1px solid #334155; border-radius:12px; padding:18px;
+  margin-bottom:18px;
+}
+.grafik-baslik { font-size:12px; color:#64748b; margin-bottom:14px; text-transform:uppercase; letter-spacing:.5px; }
+#gecmisGrafik { width:100%; height:160px; }
+
+.gecmis-tablo { background:#0f172a; border:1px solid #334155; border-radius:12px; overflow:hidden; }
+.tablo-baslik { display:grid; grid-template-columns:130px 70px 80px 80px 80px 70px; padding:10px 16px; background:#1e293b; font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.4px; }
+.tablo-satir  { display:grid; grid-template-columns:130px 70px 80px 80px 80px 70px; padding:9px 16px; border-top:1px solid #1e293b; font-size:12px; }
+.tablo-satir:hover { background:#0f172a; }
+.status-good    { color:#22c55e; }
+.status-warning { color:#f59e0b; }
+.status-bad     { color:#ef4444; }
+
+@media (max-width:1080px) {
+  .icerik { grid-template-columns:1fr; }
+  .kamera-kutu,#video,#canvas { width:100%; max-width:640px; height:auto; }
+  .ai-grid { grid-template-columns:1fr; }
+  .rapor-grid { grid-template-columns:1fr; }
+}
+
+/* KALIBRASYON */
+.kalib-satir{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #334155;}
+.kalib-btn{padding:6px 13px;background:#1e293b;border:1px solid #334155;color:#94a3b8;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600;transition:all .2s;}
+.kalib-btn:hover:not(:disabled){border-color:#6366f1;color:#6366f1;}
+.kalib-btn.kalibre{background:rgba(34,197,94,.12);border-color:#22c55e!important;color:#22c55e!important;}
+.kalib-sifirla{padding:4px 9px;background:transparent;border:1px solid #334155;color:#64748b;border-radius:6px;font-size:10px;cursor:pointer;margin-left:6px;}
+.kalib-durum{font-size:10px;color:#64748b;}
+
+/* HAFTALIK KARŞILAŞTIRMA */
+.karsilastirma-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.karsilastirma-kart{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px;text-align:center;}
+.kk-baslik{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.kk-deger{font-size:20px;font-weight:800;margin-bottom:3px;}
+.kk-gecen{font-size:10px;color:#475569;}
+.trend-yukari{color:#22c55e;font-size:11px;font-weight:700;}
+.trend-asagi{color:#ef4444;font-size:11px;font-weight:700;}
+.trend-esit{color:#64748b;font-size:11px;}
+
+/* RAPOR SEKMESİ */
+.rapor-icerik{padding:22px;max-width:1100px;margin:0 auto;}
+.rapor-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.rapor-kart{background:#0f172a;border:1px solid #334155;border-radius:14px;padding:20px;margin-bottom:0;}
+.rapor-kart-baslik{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:14px;}
+.ozet-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ozet-kutu{background:#020617;border:1px solid #1e293b;border-radius:10px;padding:12px;text-align:center;}
+.ozet-kutu .etiket{font-size:10px;color:#64748b;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+.ozet-kutu .deger{font-size:22px;font-weight:800;}
+.metric-satir{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e293b;font-size:12px;}
+.metric-satir:last-child{border-bottom:none;}
+.metric-ad{color:#94a3b8;}
+.metric-degerler{display:flex;align-items:center;gap:8px;}
+.metric-bu{font-weight:700;font-size:13px;}
+.metric-gec{color:#475569;font-size:11px;}
+
+/* YENİ RAPOR STİLLERİ */
+.rapor-metrik-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+.rapor-metrik-kart{background:#0f172a;border:1px solid #334155;border-radius:14px;padding:18px 16px;text-align:center;}
+.rm-ikon{font-size:24px;margin-bottom:8px;}
+.rm-baslik{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.rm-deger{font-size:26px;font-weight:800;margin-bottom:4px;}
+.rm-alt{font-size:11px;color:#64748b;}
+.rm-trend-iyi{color:#22c55e;font-weight:700;}
+.rm-trend-kotu{color:#ef4444;font-weight:700;}
+.rm-trend-esit{color:#64748b;}
+
+.rapor-bar-satir{margin-bottom:14px;}
+.rapor-bar-etiket{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;}
+.rapor-bar-ad{color:#94a3b8;}
+.rapor-bar-degerler{display:flex;gap:6px;align-items:center;font-weight:700;font-size:12px;}
+.rapor-bar-kap{background:#1e293b;border-radius:4px;height:8px;overflow:hidden;margin-bottom:3px;}
+.rapor-bar-ic{height:100%;border-radius:4px;transition:width .6s ease;}
+.rapor-bar-gecen{background:#334155;border-radius:4px;height:5px;overflow:hidden;}
+.rapor-bar-gecen-ic{height:100%;border-radius:4px;background:#475569;}
+
+.degerlendirme-kutu{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:16px 18px;margin-bottom:18px;font-size:13px;line-height:1.8;color:#cbd5e1;}
+.degerlendirme-kutu strong{color:#818cf8;}
+
+.grafik-bar-alan{display:flex;align-items:flex-end;gap:3px;height:80px;padding-bottom:20px;position:relative;}
+.grafik-bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.grafik-bar{width:100%;border-radius:3px 3px 0 0;transition:height .4s ease;min-height:3px;}
+.grafik-bar-gun{font-size:9px;color:#475569;text-align:center;position:absolute;bottom:0;}
+.grafik-gun-etiket{display:flex;gap:3px;margin-top:6px;}
+.grafik-gun-etiket span{flex:1;font-size:9px;color:#475569;text-align:center;}
+
+.ai-risk-liste{margin:10px 0;}
+.ai-risk-satir{padding:8px 0;border-bottom:1px solid #1e293b;}
+.ai-risk-satir:last-child{border-bottom:none;}
+.ai-risk-ust{display:flex;justify-content:space-between;margin-bottom:4px;}
+.ai-risk-ad{font-size:12px;font-weight:700;color:#e2e8f0;}
+.ai-risk-pct{font-size:11px;color:#94a3b8;font-weight:700;}
+.ai-risk-bar-kap{height:4px;background:#1e293b;border-radius:2px;margin-bottom:4px;}
+.ai-risk-bar-ic{height:100%;border-radius:2px;}
+.ai-risk-aciklama{font-size:11px;color:#64748b;line-height:1.5;}
+.ai-oneri-liste{margin-top:12px;}
+.ai-oneri-satir{padding:5px 0;font-size:12px;color:#94a3b8;display:flex;gap:8px;align-items:flex-start;border-bottom:1px solid #0f172a;}
+.ai-oneri-satir:last-child{border-bottom:none;}
+.ai-oneri-satir::before{content:"→";color:#6366f1;font-weight:700;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div id="tehlikeBorder"></div>
+<div id="ekran-uyari"></div>
+<div id="buyukUyari">
+  <div class="baslik">⚠ DURUŞUNU DÜZELT!</div>
+  <div class="altYazi" id="buyukUyariAlt">–</div>
+</div>
+
+<!-- mola ekrani -->
+<div id="molaEkrani">
+  <div style="font-size:68px">☕</div>
+  <div class="mola-baslik">Mola Zamanı!</div>
+  <div class="mola-aciklama">Ekrandan uzaklaş, gözlerini dinlendir.<br>Aşağıdaki egzersizleri yap.</div>
+  <div class="egzersiz-grid">
+    <div class="egzersiz-kart"><div class="ikon">🔄</div><div class="metin"><strong>Boyun Rotasyonu</strong>Başını yavaşça sağa-sola döndür. 3 tekrar.</div></div>
+    <div class="egzersiz-kart"><div class="ikon">⬆️</div><div class="metin"><strong>Omuz Açma</strong>Omuzlarını kulaklara kaldır, 3 sn tut. 5 tekrar.</div></div>
+    <div class="egzersiz-kart"><div class="ikon">↔️</div><div class="metin"><strong>Boyun Germe</strong>Başını omzuna eğ, 10 sn bekle. Her yanda.</div></div>
+    <div class="egzersiz-kart"><div class="ikon">👁️</div><div class="metin"><strong>20-20-20 Kuralı</strong>20 sn boyunca 6 metre uzaktaki noktaya bak.</div></div>
+  </div>
+  <div class="mola-butonlar">
+    <button class="buton buton-ana" onclick="molayiKapat(false)">✓ Molayı Tamamladım</button>
+    <button class="buton buton-gec" onclick="molayiKapat(true)">Atla</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo-alani">
+    <div class="logo-yazi">Dik<span>Dur</span></div>
+  </div>
+  <div class="mola-pill" id="molaPill" onclick="molayiAc()">
+    <span>⏱</span><span id="molaSayac">Mola: 45:00</span>
+  </div>
+  <div class="sag-menu">
+    <span id="oturumSaati">Oturum: 00:00</span>
+    <button class="header-btn" id="temaBtn"   onclick="temaDegistir()">🌙 Karanlık</button>
+    <button class="header-btn" id="sesBtn"    onclick="sesDegistir()">🔊 Ses Açık</button>
+    <button class="header-btn" id="kayitBtn"  onclick="kayitDegistir()">⏸ Kaydı Durdur</button>
+    <span id="kullaniciAdi" style="font-size:12px;color:#64748b"></span>
+    <button class="header-btn" onclick="hesapModalAc()" style="color:#94a3b8">⚙️ Hesabım</button>
+    <button class="header-btn" onclick="cikisYap()">Çıkış</button>
+    <div class="durum-rozet">
+      <div class="nokta" id="durumNokta"></div>
+      <span id="durumYazi">Bağlanıyor…</span>
+    </div>
+  </div>
+</header>
+
+<!-- navigasyon tablar -->
+<div class="nav-tabs">
+  <button class="nav-tab aktif" onclick="tabDegistir('kamera')">📷 Canlı Analiz</button>
+  <button class="nav-tab"       onclick="tabDegistir('gecmis')">📊 Geçmiş</button>
+  <button class="nav-tab"       onclick="tabDegistir('ai')">🤖 AI Asistan</button>
+  <button class="nav-tab"       onclick="tabDegistir('rapor')">📋 Rapor</button>
+</div>
+
+<!-- CANLI ANALiZ sekmesi -->
+<div class="sekme aktif" id="tab-kamera">
+<div class="icerik">
+  <div class="sol-sutun">
+    <div class="kamera-kutu">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas"></canvas>
+      <div id="kameraCerceve"></div>
+      <div id="kameraYazi"></div>
+    </div>
+    <div class="istatistikler">
+      <div class="stat-kutu"><div class="etiket">Postür Skoru</div><div class="deger" id="st-skor" style="color:#94a3b8">–</div></div>
+      <div class="stat-kutu"><div class="etiket">İyi Duruş</div><div class="deger" id="st-iyi" style="color:#22c55e">0%</div></div>
+      <div class="stat-kutu"><div class="etiket">Uyarı Sayısı</div><div class="deger" id="st-uyari" style="color:#f59e0b">0</div></div>
+      <div class="stat-kutu"><div class="etiket">Aktif Sorun</div><div class="deger" id="st-sorun" style="color:#ef4444">0</div></div>
+    </div>
+  </div>
+  <div class="sag-sutun">
+    <div class="skor-kart">
+      <div class="kart-baslik">Genel Duruş Skoru</div>
+      <div class="halka-sargisi">
+        <svg class="halka-svg" viewBox="0 0 130 130">
+          <circle class="halka-arka" cx="65" cy="65" r="55"/>
+          <circle class="halka-on" id="halkaOn" cx="65" cy="65" r="55" stroke-dasharray="345.4" stroke-dashoffset="345.4" stroke="#22c55e"/>
+        </svg>
+        <div class="halka-sayi" id="halkaSayi">–</div>
+      </div>
+      <div class="halka-aciklama" id="halkaAciklama" style="color:#94a3b8">Kamera Bekleniyor</div>
+    </div>
+    <div class="metrik-kart">
+      <div class="kart-baslik">Üst Vücut Ölçümleri</div>
+      <div class="metrik-satir">
+        <div class="metrik-bilgi"><div class="ad">Boyun Öne Eğimi</div><div class="alt">Kulak ile omuz dikey hizası</div></div>
+        <div class="metrik-sag"><div class="metrik-deger" id="d-boyun">–</div><div class="bar-kap"><div class="bar-ic" id="b-boyun" style="width:0%"></div></div><div class="durum-etiket d-bos" id="e-boyun">–</div></div>
+      </div>
+      <div class="metrik-satir">
+        <div class="metrik-bilgi"><div class="ad">Baş Eğimi</div><div class="alt">Sol ve sağ kulak yükseklik farkı</div></div>
+        <div class="metrik-sag"><div class="metrik-deger" id="d-bas">–</div><div class="bar-kap"><div class="bar-ic" id="b-bas" style="width:0%"></div></div><div class="durum-etiket d-bos" id="e-bas">–</div></div>
+      </div>
+      <div class="metrik-satir">
+        <div class="metrik-bilgi"><div class="ad">Omuz Eğimi</div><div class="alt">Omuz hattının yatay açısı</div></div>
+        <div class="metrik-sag"><div class="metrik-deger" id="d-omuz">–</div><div class="bar-kap"><div class="bar-ic" id="b-omuz" style="width:0%"></div></div><div class="durum-etiket d-bos" id="e-omuz">–</div></div>
+      </div>
+      <div class="metrik-satir">
+        <div class="metrik-bilgi"><div class="ad">Omuz Gerginliği</div><div class="alt">Omuzların kulağa yakınlık oranı</div></div>
+        <div class="metrik-sag"><div class="metrik-deger" id="d-gerginlik">–</div><div class="bar-kap"><div class="bar-ic" id="b-gerginlik" style="width:0%"></div></div><div class="durum-etiket d-bos" id="e-gerginlik">–</div></div>
+      </div>
+      <div class="metrik-satir">
+        <div class="metrik-bilgi"><div class="ad">Merkez Hizası</div><div class="alt">Başın omuz ortasına yatay uzaklığı</div></div>
+        <div class="metrik-sag"><div class="metrik-deger" id="d-merkez">–</div><div class="bar-kap"><div class="bar-ic" id="b-merkez" style="width:0%"></div></div><div class="durum-etiket d-bos" id="e-merkez">–</div></div>
+      </div>
+      <div class="metrik-satir">
+        <div class="metrik-bilgi"><div class="ad">Kafa Öne Eğimi</div><div class="alt">Burunun kulak-omuz hattına göre konumu</div></div>
+        <div class="metrik-sag"><div class="metrik-deger" id="d-kafa">–</div><div class="bar-kap"><div class="bar-ic" id="b-kafa" style="width:0%"></div></div><div class="durum-etiket d-bos" id="e-kafa">–</div></div>
+      </div>
+      <div class="kalib-satir">
+        <div>
+          <button class="kalib-btn" id="kalibBtn" onclick="kalibreBaslat()">📐 Kalibre Et</button>
+          <button class="kalib-sifirla" id="kalibSifirlaBtn" onclick="kalibreSifirla()" style="display:none">↺ Sıfırla</button>
+        </div>
+        <div class="kalib-durum" id="kalibDurum">Kişisel eşikler için kalibre edin</div>
+      </div>
+    </div>
+    <div class="uyari-kart">
+      <div class="kart-baslik">Aktif Uyarılar</div>
+      <div id="uyariListesi"><div class="uyari-yok">✓ Aktif uyarı yok</div></div>
+    </div>
+    <div class="ipucu-kart">
+      <div class="ipucu-ikon">💡</div>
+      <div class="ipucu-metin"><strong>Ergonomi İpucu</strong><span id="ipucuYazi">Ekran göz hizasında olmalı.</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- GECMiS sekmesi -->
+<div class="sekme" id="tab-gecmis">
+<div class="sekme-icerik">
+  <div class="panel-baslik">Duruş Geçmişi</div>
+  <div class="gecmis-kontrol">
+    <button class="gun-btn aktif" onclick="gecmisYukle(7,this)">7 Gün</button>
+    <button class="gun-btn" onclick="gecmisYukle(14,this)">14 Gün</button>
+    <button class="gun-btn" onclick="gecmisYukle(30,this)">30 Gün</button>
+  </div>
+  <div class="karsilastirma-grid">
+    <div class="karsilastirma-kart">
+      <div class="kk-baslik">Bu Hafta Skoru</div>
+      <div class="kk-deger" id="kk-skor" style="color:#94a3b8">–</div>
+      <div class="kk-gecen" id="kk-skor-alt">Geçen hafta: –</div>
+    </div>
+    <div class="karsilastirma-kart">
+      <div class="kk-baslik">İyi Duruş</div>
+      <div class="kk-deger" id="kk-iyi" style="color:#94a3b8">–</div>
+      <div class="kk-gecen" id="kk-iyi-alt">Geçen hafta: –</div>
+    </div>
+    <div class="karsilastirma-kart">
+      <div class="kk-baslik">Ort. Boyun°</div>
+      <div class="kk-deger" id="kk-boyun" style="color:#94a3b8">–</div>
+      <div class="kk-gecen" id="kk-boyun-alt">Geçen hafta: –</div>
+    </div>
+    <div class="karsilastirma-kart">
+      <div class="kk-baslik">Ort. Gerginlik</div>
+      <div class="kk-deger" id="kk-gerginlik" style="color:#94a3b8">–</div>
+      <div class="kk-gecen" id="kk-gerginlik-alt">Geçen hafta: –</div>
+    </div>
+  </div>
+  <div class="grafik-alan">
+    <div class="grafik-baslik">Günlük Ortalama Skor</div>
+    <canvas id="gecmisGrafik"></canvas>
+  </div>
+  <div class="gecmis-tablo">
+    <div class="tablo-baslik">
+      <span>Tarih</span><span>Skor</span><span>Boyun°</span><span>Omuz°</span><span>Gerginlik</span><span>Durum</span>
+    </div>
+    <div id="gecmisSatirlar"><div style="padding:20px;text-align:center;color:#64748b;font-size:13px">Yükleniyor…</div></div>
+  </div>
+</div>
+</div>
+
+<!-- AI ASISTAN sekmesi -->
+<div class="sekme" id="tab-ai">
+<div class="sekme-icerik">
+  <div class="panel-baslik">AI Sağlık Asistanı</div>
+  <div class="ai-grid">
+
+    <!-- Saglik riski (OpenAI) -->
+    <div class="ai-kart">
+      <div class="ai-kart-baslik">🧠 Sağlık Risk Analizi</div>
+      <div class="ai-kart-alt">Duruş geçmişiniz AI tarafından analiz edilir. Olası sağlık riskleri tahmin edilir.</div>
+      <button class="ai-btn" id="riskBtn" onclick="saglikRiskiAl()">Analizi Başlat</button>
+      <div class="ai-sonuc" id="riskSonuc"></div>
+    </div>
+
+    <!-- Egzersiz programi (Ollama) -->
+    <div class="ai-kart">
+      <div class="ai-kart-baslik">🏋️ Kişisel Egzersiz Programı</div>
+      <div class="ai-kart-alt">Yerel AI modeliniz (Ollama/llama3.2) duruş verilerinize göre özel program oluşturur.</div>
+      <button class="ai-btn" id="egzBtn" onclick="egzersizProgramiAl()">Program Oluştur</button>
+      <div id="ollamaUyari" style="font-size:11px;color:#f59e0b;margin-top:8px;display:none">⚠ Yerel model hazır değil — Docker'da Ollama çalışıyor mu?</div>
+      <div class="ai-sonuc" id="egzSonuc"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- RAPOR sekmesi -->
+<div class="sekme" id="tab-rapor">
+<div class="rapor-icerik">
+  <div class="panel-baslik">📋 Haftalık Rapor</div>
+
+  <!-- 4 Metrik Kart -->
+  <div class="rapor-metrik-grid">
+    <div class="rapor-metrik-kart">
+      <div class="rm-ikon">🎯</div>
+      <div class="rm-baslik">Haftalık Skor</div>
+      <div class="rm-deger" id="r-skor" style="color:#94a3b8">–</div>
+      <div class="rm-alt" id="r-skor-trend">Bu hafta ortalaması</div>
+    </div>
+    <div class="rapor-metrik-kart">
+      <div class="rm-ikon">✅</div>
+      <div class="rm-baslik">İyi Duruş Oranı</div>
+      <div class="rm-deger" id="r-iyi" style="color:#22c55e">–</div>
+      <div class="rm-alt" id="r-iyi-trend">Geçen haftaya göre</div>
+    </div>
+    <div class="rapor-metrik-kart">
+      <div class="rm-ikon">📅</div>
+      <div class="rm-baslik">Aktif Gün</div>
+      <div class="rm-deger" id="r-gun" style="color:#22d3ee">–</div>
+      <div class="rm-alt">7 günden</div>
+    </div>
+    <div class="rapor-metrik-kart">
+      <div class="rm-ikon">⭐</div>
+      <div class="rm-baslik">En İyi Gün</div>
+      <div class="rm-deger" id="r-en-iyi" style="font-size:18px;color:#f59e0b">–</div>
+      <div class="rm-alt" id="r-en-iyi-skor">Bu haftanın zirvesi</div>
+    </div>
+  </div>
+
+  <!-- Değerlendirme Metni -->
+  <div class="degerlendirme-kutu" id="r-degerlendirme" style="display:none"></div>
+
+  <!-- Grafik + Karşılaştırma -->
+  <div class="rapor-grid" style="margin-bottom:18px;">
+    <div class="rapor-kart">
+      <div class="rapor-kart-baslik">📈 Son 14 Günlük Skor Trendi</div>
+      <div id="rapor-grafik" style="display:flex;align-items:flex-end;gap:4px;height:90px;padding-bottom:22px;position:relative;">
+        <div style="color:#475569;font-size:12px;margin:auto">Yükleniyor…</div>
+      </div>
+      <div id="rapor-grafik-gunler" class="grafik-gun-etiket"></div>
+    </div>
+    <div class="rapor-kart">
+      <div class="rapor-kart-baslik">📊 Geçen Haftayla Karşılaştırma</div>
+      <div id="rapor-karsilastirma">
+        <div style="color:#475569;font-size:12px;">Yükleniyor…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Analizi -->
+  <div class="rapor-kart">
+    <div class="rapor-kart-baslik">🧠 AI Sağlık Analizi</div>
+    <div id="raporAiSonuc">
+      <div style="display:flex;align-items:center;gap:10px;color:#475569;font-size:13px;">
+        <span style="animation:spin 1s linear infinite;display:inline-block">⏳</span> Analiz yükleniyor…
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+<script>
+
+// ============================================================
+// AUTH KONTROL
+// Sayfa açılınca kullanıcının giriş yapmış olup olmadığını
+// kontrol ediyoruz. Token yoksa direkt giriş ekranına atıyoruz.
+// Token var ama geçersizse (süresi dolmuş vs.) sunucu bize 401
+// döner ve yine giriş ekranına yönlendiriyoruz.
+// ============================================================
+var API   = '/api';                                    // Backend adresinin başı
+var token = localStorage.getItem('pt_token');          // Tarayıcıda kayıtlı JWT token
+var user  = null;
+
+try { user = JSON.parse(localStorage.getItem('pt_user')); } catch {}
+
+// Token hiç yoksa giriş sayfasına yönlendir
+if (!token) { window.location.href = 'login.html'; }
+
+// Her API isteğine JWT token'ı Authorization header olarak ekleyen yardımcı fonksiyon
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+}
+
+// Çıkış yap: token ve kullanıcı bilgisini localStorage'dan sil, giriş sayfasına yönlendir
+function cikisYap() {
+  localStorage.removeItem('pt_token');
+  localStorage.removeItem('pt_user');
+  window.location.href = 'login.html';
+}
+
+// Sağ üstteki kullanıcı adı alanını doldur
+if (user) {
+  document.getElementById('kullaniciAdi').textContent = user.name;
+}
+
+// Sayfa açılınca token hâlâ geçerli mi diye sunucuya sor
+// Geçersizse (401) otomatik çıkış yapılır
+fetch(API + '/auth/me', { headers: authHeaders() }).then(function(r) {
+  if (!r.ok) cikisYap();
+}).catch(function() {});
+
+// ============================================================
+// TAB YONETiMi
+// Üstteki "Canlı Analiz / Geçmiş / AI Asistan" butonlarını
+// yönetir. Tıklanan butonu aktif yapar, diğer sekmeleri gizler.
+// Geçmiş sekmesi açılınca veriyi otomatik yükler.
+// AI sekmesi açılınca Ollama durumunu kontrol eder.
+// ============================================================
+function tabDegistir(sekme) {
+  document.querySelectorAll('.nav-tab').forEach(function(t, i) {
+    var secenekler = ['kamera','gecmis','ai','rapor'];
+    t.classList.toggle('aktif', secenekler[i] === sekme);
+  });
+  document.querySelectorAll('.sekme').forEach(function(s) {
+    s.classList.remove('aktif');
+  });
+  document.getElementById('tab-' + sekme).classList.add('aktif');
+
+  if (sekme === 'gecmis') gecmisYukle(7, document.querySelector('.gun-btn.aktif'));
+  if (sekme === 'ai')     aiDurumKontrol();
+  if (sekme === 'rapor')  raporYukle();
+}
+
+// ============================================================
+// DEGiSKENLER
+// Programın çalışması için gereken tüm global değişkenler burada
+// tanımlanıyor. Bunlar fonksiyonlar arasında paylaşılan verilerdir.
+// ============================================================
+// Kişisel eşik değerleri — önce backend'den veri odaklı eşikler, üstüne kullanıcı kalibrasyonu
+var KALIB = {
+  boyun:    { iyi: 12, kotu: 22 },
+  bas:      { iyi:  3, kotu:  6 },
+  omuz:     { iyi:  4, kotu:  9 },
+  gerginlik:{ iyi:  5, kotu: 10 },
+  merkez:   { iyi:  7, kotu: 14 },
+  kafa:     { iyi: 25, kotu: 35 },
+  kafaGeri: { iyi: 20, kotu: 45 },
+};
+
+// Sayfa açılışında: backend eşikleri yükle, üstüne kişisel kalibrasyon uygula
+(async function() {
+  try {
+    var resp = await fetch(API + '/posture/thresholds', { headers: authHeaders() });
+    if (resp.ok) {
+      var data = await resp.json();
+      var t = data.thresholds;
+      // Sadece veritabanında veri varsa uygula (sample_count > 0)
+      for (var k of ['boyun','bas','omuz','gerginlik','merkez']) {
+        if (t[k] && (t[k].sample_count > 0 || !data.data_driven)) {
+          KALIB[k] = { iyi: t[k].iyi, kotu: t[k].kotu };
+        }
+      }
+      if (data.data_driven) {
+        var durum = document.getElementById('kalibDurum');
+        if (durum && !localStorage.getItem('pt_kalibrasyon')) {
+          durum.textContent = 'Veri odaklı eşikler aktif (' + (t.boyun?.sample_count || 0).toLocaleString() + ' kayıt)';
+          durum.style.color = '#22c55e';
+        }
+      }
+    }
+  } catch {}
+  // Üstüne kişisel kalibrasyon uygula (varsa)
+  var s = localStorage.getItem('pt_kalibrasyon');
+  if (s) { try { var kisisel = JSON.parse(s); Object.assign(KALIB, kisisel); } catch {} }
+})();
+
+var kalibModu = false;
+var kalibVeri = [];
+
+var GENISLIK  = 640;    // Canvas ve video genişliği (piksel)
+var YUKSEKLIK = 480;    // Canvas ve video yüksekliği (piksel)
+var videoEl   = document.getElementById('video');    // HTML video elementi
+var kanvas    = document.getElementById('canvas');   // Üzerine çizim yapılan canvas
+var ctx       = kanvas.getContext('2d');             // Canvas 2D çizim bağlamı
+kanvas.width  = GENISLIK;
+kanvas.height = YUKSEKLIK;
+
+var toplamKare      = 0;           // Analiz edilen toplam kare sayısı
+var iyiKare         = 0;           // Sorunsuz geçen kare sayısı (iyi duruş oranı için)
+var uyariSayisi     = 0;           // Ekranda büyük uyarı kaç kez gösterildi
+var sonBuyukUyari   = 0;           // Son büyük uyarının timestamp'i (ms)
+var oturumBaslangic = Date.now();  // Sayfa açıldığındaki zaman (oturum saati için)
+var sesliUyariAcik  = true;        // Sesli uyarı açık mı? Header butonuyla değişir
+var sonSesliUyari   = 0;           // Son sesli uyarının timestamp'i (ms)
+var SESLI_ARALIK    = 7000;        // Sesli uyarılar arası minimum süre (7 saniye)
+var _sesliSira      = 0;           // Sorunlar listesinde sıradaki uyarı indeksi
+var kayitAcik       = true;        // Kayıt açık mı? Kullanıcı "Kaydı Durdur" ile kapatabilir
+var sessionId       = null;        // Backend'den gelen oturum ID'si
+var bekleyenKayitlar = [];         // Toplu gönderi için biriken kayıtlar
+var sonKayitGonder  = 0;           // Son toplu gönderimin timestamp'i
+var KAYIT_ARALIK    = 5000;        // Kayıtlar her 5 saniyede bir toplu gönderilir
+
+// EMA (Üstel Hareketli Ortalama) ile landmark yumuşatma
+// MediaPipe'ın verdiği landmark koordinatları titriyor. EMA ile
+// önceki ile yenisini karıştırarak daha sabit noktalar elde ediyoruz.
+var smoothedLm = null;
+var SMOOTH_A   = 0.28; // 0=hiç güncelleme yok (donuk), 1=direk ham veri (titrek)
+
+function smoothLm(raw) {
+  if (!smoothedLm || smoothedLm.length !== raw.length) {
+    smoothedLm = raw.map(function(p) {
+      return { x: p.x, y: p.y, z: p.z || 0, visibility: p.visibility || 1 };
+    });
+    return smoothedLm;
+  }
+  for (var i = 0; i < raw.length; i++) {
+    smoothedLm[i].x = SMOOTH_A * raw[i].x + (1 - SMOOTH_A) * smoothedLm[i].x;
+    smoothedLm[i].y = SMOOTH_A * raw[i].y + (1 - SMOOTH_A) * smoothedLm[i].y;
+    smoothedLm[i].visibility = raw[i].visibility || 1;
+  }
+  return smoothedLm;
+}
+
+// Oturumu baslatma
+(async function() {
+  try {
+    var resp = await fetch(API + '/posture/session/start', {
+      method: 'POST', headers: authHeaders()
+    });
+    var data = await resp.json();
+    sessionId = data.session && data.session.id;
+  } catch {}
+})();
+
+// Sayfa kapanirken oturumu bitir
+window.addEventListener('beforeunload', function() {
+  if (sessionId) {
+    navigator.sendBeacon(API + '/posture/session/' + sessionId + '/end',
+      JSON.stringify({}));
+  }
+});
+
+// ============================================================
+// OTURUM SAATI
+// Sayfa açıldığından beri geçen süreyi header'da gösterir.
+// Her saniye tetiklenen setInterval ile hesaplanır.
+// ============================================================
+setInterval(function() {
+  var gecen = Math.floor((Date.now() - oturumBaslangic) / 1000);
+  var dk = String(Math.floor(gecen/60)).padStart(2,'0');
+  var sn = String(gecen%60).padStart(2,'0');
+  document.getElementById('oturumSaati').textContent = 'Oturum: ' + dk + ':' + sn;
+}, 1000);
+
+// ============================================================
+// MOLA SİSTEMİ
+// Kullanıcıyı 45 dakikada bir mola almaya zorlar.
+// Sayaç sıfıra inince mola ekranı açılır ve egzersizler gösterilir.
+// Son 10 dakikada pill sarıya, son 5 dakikada kırmızıya döner.
+// ============================================================
+var MOLA_SURE = 45*60; // 45 dakika saniye cinsinden
+var molaSaniye = MOLA_SURE;
+
+setInterval(function() {
+  molaSaniye--;
+  if (molaSaniye < 0) molaSaniye = 0;
+  var dk = Math.floor(molaSaniye/60);
+  var sn = String(molaSaniye%60).padStart(2,'0');
+  document.getElementById('molaSayac').textContent = 'Mola: ' + dk + ':' + sn;
+  var pill = document.getElementById('molaPill');
+  if (molaSaniye === 0) { molayiAc(); molaSaniye = MOLA_SURE; }
+  else if (molaSaniye <= 5*60)  pill.className = 'mola-pill simdi';
+  else if (molaSaniye <= 10*60) pill.className = 'mola-pill yakin';
+  else                          pill.className = 'mola-pill';
+}, 1000);
+
+function molayiAc()         { document.getElementById('molaEkrani').classList.add('acik'); }
+function molayiKapat(atla)  {
+  document.getElementById('molaEkrani').classList.remove('acik');
+  if (!atla) molaSaniye = MOLA_SURE;
+}
+
+// ============================================================
+// iRONOMi iPUCLARI
+// ============================================================
+var ipuclari = [
+  "Ekran göz hizasında olmalı. Boynu aşağı eğmemek için monitörü yükselt.",
+  "Her 20 dakikada bir, 20 saniye boyunca 6 metre uzaktaki bir noktaya bak.",
+  "Omuzlarını fark et. Stres anında omuzları kulağa doğru kaldırmak trapezi yorar.",
+  "Sandalyeni ayarla: dizler 90°, ayaklar yerde, dirsekler masa yüzeyiyle aynı hizada.",
+  "Boynu 2.5 cm öne eğmek omurgaya 4 kg ek yük bindirir. 45°'de bu 22 kg olur.",
+  "Mouse ve klavye uzağa uzanmayı gerektirmemeli. Bilek önkol ile düz hizada olmalı.",
+  "2 saatte bir kalk ve 5 dakika yürü. Uzun süre oturmak omurga diskleri için zararlı.",
+];
+var siradakiIpucu = 0;
+setInterval(function() {
+  siradakiIpucu = (siradakiIpucu+1) % ipuclari.length;
+  var el = document.getElementById('ipucuYazi');
+  el.style.opacity = '0';
+  setTimeout(function() { el.textContent = ipuclari[siradakiIpucu]; el.style.opacity='1'; }, 300);
+}, 25000);
+document.getElementById('ipucuYazi').style.transition = 'opacity 0.3s';
+
+// ============================================================
+// SES SİSTEMİ
+// Tarayıcının Web Speech API'sini kullanarak Türkçe sesli uyarı verir.
+// 4 saniyede bir uyarı verilir (SESLI_ARALIK). Her sorun bölgesinin
+// kendi sesli mesajı var; hangi bölge sorunluysa o söylenir.
+// Sesleri sırayla döngüsel olarak okur — aynı uyarıyı sürekli
+// tekrarlamamak için _sesliSira sayacı kullanılıyor.
+// ============================================================
+function sesliBildir(metin) {
+  // Ses kapalıysa veya tarayıcı desteklemiyorsa hiçbir şey yapma
+  if (!sesliUyariAcik || !window.speechSynthesis) return false;
+  var simdi = Date.now();
+  // 4 saniye dolmadıysa yeni uyarı verme
+  if (simdi - sonSesliUyari < SESLI_ARALIK) return false;
+  sonSesliUyari = simdi;
+  // Parantez içi kısımları temizle, fazla boşlukları kaldır
+  var temiz = metin.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+  var u = new SpeechSynthesisUtterance(temiz);
+  u.lang = 'tr-TR'; u.rate = 0.95; u.pitch = 1.0; u.volume = 0.9;
+  window.speechSynthesis.cancel(); // Varsa önceki sesi iptal et
+  window.speechSynthesis.speak(u);
+  return true; // Uyarı verildi — _sesliSira'yı ilerletmesi için true dön
+}
+
+function temaDegistir() {
+  var aydinlik = document.body.classList.toggle('aydinlik');
+  var btn = document.getElementById('temaBtn');
+  btn.textContent = aydinlik ? '🌙 Karanlık' : '☀️ Aydınlık';
+  localStorage.setItem('pt_tema', aydinlik ? 'aydinlik' : 'karanlik');
+}
+// Kayıtlı temayı uygula
+(function() {
+  if (localStorage.getItem('pt_tema') === 'aydinlik') {
+    document.body.classList.add('aydinlik');
+    document.addEventListener('DOMContentLoaded', function() {
+      var btn = document.getElementById('temaBtn');
+      if (btn) btn.textContent = '🌙 Karanlık';
+    });
+  }
+})();
+
+function sesDegistir() {
+  sesliUyariAcik = !sesliUyariAcik;
+  var btn = document.getElementById('sesBtn');
+  if (sesliUyariAcik) { btn.textContent = '🔊 Ses Açık'; }
+  else { btn.textContent = '🔇 Ses Kapalı'; window.speechSynthesis.cancel(); }
+}
+
+// ============================================================
+// KAYIT SİSTEMİ
+// Program çalışırken her analiz sonucunu veritabanına kaydeder.
+// "Kaydı Durdur" ile bu kayıt geçici olarak durmaz — analiz devam eder
+// ama sonuçlar veritabanına yazılmaz. "Kaydı Başlat" ile yeniden başlar.
+// Performans için her veri anında gönderilmez; 5 saniyede bir toplu gönderilir.
+// ============================================================
+function kayitDegistir() {
+  // Kaydı aç veya kapat, butonu güncelle
+  kayitAcik = !kayitAcik;
+  var btn = document.getElementById('kayitBtn');
+  btn.textContent = kayitAcik ? '⏸ Kaydı Durdur' : '▶ Kaydı Başlat';
+}
+
+async function kayitGonder(kayit) {
+  // Kayıt kapalıysa hiçbir şey yapma
+  if (!kayitAcik) return;
+  // Kaydı bekleme kuyruğuna ekle
+  bekleyenKayitlar.push(kayit);
+  var simdi = Date.now();
+  // 5 saniye dolmadıysa gönderme — biriktirmeye devam et
+  if (simdi - sonKayitGonder < KAYIT_ARALIK) return;
+  sonKayitGonder = simdi;
+  // Kuyruktaki tüm kayıtları al ve gönder
+  var toplu = bekleyenKayitlar.splice(0, bekleyenKayitlar.length);
+  try {
+    await fetch(API + '/posture/record', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ session_id: sessionId, records: toplu }),
+    });
+  } catch {} // Ağ hatalarında program çökmemeli, sessizce devam etmeli
+}
+
+// ============================================================
+// POSTUR HESAPLAMALARI
+// MediaPipe'ın verdiği 0-1 arasındaki koordinatları piksel konumuna
+// çevirip matematiksel açı ve mesafe hesapları yapıyoruz.
+// Her metrik, gerçek hayattaki bir duruş sorununa karşılık gelir:
+//   boynuAci    → boyun ne kadar öne eğik (derece)
+//   basEgimi    → baş ne kadar yana yatmış (% olarak)
+//   omuzEgimi   → omuzlar ne kadar eğri (derece)
+//   gerginlik   → omuzlar kulağa ne kadar yakın (% olarak)
+//   merkezKayma → baş omuzların ortasından ne kadar saptı (% olarak)
+//   kafaOneEgimi→ burun kulak-omuz hattında ne kadar ilerde (% olarak)
+//   govdeEgimi  → üst gövde kalçaya göre ne kadar öne eğik (% olarak)
+// ============================================================
+function lmPiksel(lm, indeks) {
+  return { x: (1 - lm[indeks].x) * GENISLIK, y: lm[indeks].y * YUKSEKLIK };
+}
+function ortaNokta(a,b) { return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }; }
+function dikelAci(p1,p2) {
+  var dx = Math.abs(p2.x-p1.x), dy = Math.abs(p2.y-p1.y);
+  return Math.atan2(dx,dy) * 180/Math.PI;
+}
+function yatayAci(p1,p2) {
+  var dx = Math.abs(p2.x-p1.x), dy = Math.abs(p2.y-p1.y);
+  return Math.atan2(dy,dx) * 180/Math.PI;
+}
+
+function posturHesapla(lm) {
+  var solKulak  = lmPiksel(lm, 7),  sagKulak  = lmPiksel(lm, 8);
+  var solOmuz   = lmPiksel(lm, 11), sagOmuz   = lmPiksel(lm, 12);
+  var solKalca  = lmPiksel(lm, 23), sagKalca  = lmPiksel(lm, 24);
+  var burun     = lmPiksel(lm, 0);
+  var solGoz    = lmPiksel(lm, 2);
+  var sagGoz    = lmPiksel(lm, 5);
+
+  var kulakOrta = ortaNokta(solKulak, sagKulak);
+  var omuzOrta  = ortaNokta(solOmuz,  sagOmuz);
+  var kalcaOrta = ortaNokta(solKalca, sagKalca);
+  var gozOrta   = ortaNokta(solGoz,   sagGoz);
+  var omuzGen   = Math.abs(sagOmuz.x - solOmuz.x);
+  var kalcaGen  = Math.abs(sagKalca.x - solKalca.x);
+
+  // Boyun açısı: kulak-omuz dikey açısı
+  var boynuAci = dikelAci(omuzOrta, kulakOrta);
+
+  // Baş eğimi: kulak yükseklik farkı
+  var basEgimi = Math.abs(solKulak.y - sagKulak.y) / YUKSEKLIK * 100;
+
+  // Omuz eğimi
+  var omuzEgimi = yatayAci(solOmuz, sagOmuz);
+
+  // Omuz gerginliği: her omzu kendi kulağına yakınlığına göre ayrı ölç
+  var solMesafe = solOmuz.y - solKulak.y;
+  var sagMesafe = sagOmuz.y - sagKulak.y;
+  if (solMesafe < 0) solMesafe = 0;
+  if (sagMesafe < 0) sagMesafe = 0;
+  var solMesafeOrani = omuzGen > 0 ? solMesafe / omuzGen : 0.5;
+  var sagMesafeOrani = omuzGen > 0 ? sagMesafe / omuzGen : 0.5;
+  // En kötü omzu baz al (min = en kısa mesafe = en gergin)
+  var mesafeOrani = Math.min(solMesafeOrani, sagMesafeOrani);
+  // Gerginlik: kişinin kalibre edilmiş doğal mesafesini referans alır.
+  // Kalibrasyon yoksa 0.5 varsayılan. Kalibre edilince anatomy-relative ölçüm yapılır.
+  var gerginlikRef = (KALIB.gerginlikRef !== undefined) ? KALIB.gerginlikRef : 0.5;
+  var gerginlik    = Math.max(0, Math.min(100, (gerginlikRef - mesafeOrani) / Math.max(gerginlikRef, 0.15) * 100));
+  var solGerginlik = Math.max(0, Math.min(100, (gerginlikRef - solMesafeOrani) / Math.max(gerginlikRef, 0.15) * 100));
+  var sagGerginlik = Math.max(0, Math.min(100, (gerginlikRef - sagMesafeOrani) / Math.max(gerginlikRef, 0.15) * 100));
+
+  // Merkez kayması: burunun omuz ortasına göre yatay sapması
+  var merkezKayma = omuzGen > 0 ? Math.abs(burun.x - omuzOrta.x) / omuzGen * 100 : 0;
+
+  // Kafa öne/geri eğimi: burunun kulak-omuz hattındaki konumu
+  // burunOrani: 0=kulak hizası, 1=omuz hizası; normal ~0.15-0.30
+  // Öne eğimde burunOrani yükselir (burun aşağı iner)
+  // Geri eğimde burunOrani negatif olur (burun kulağın üstüne çıkar — yukarı bakış)
+  var kafaOneEgimi = 0;
+  var kafaGeriEgimi = 0;
+  var kulakOmuzAralik = omuzOrta.y - kulakOrta.y;
+  if (kulakOmuzAralik > 10) {
+    var burunOrani = (burun.y - kulakOrta.y) / kulakOmuzAralik;
+    kafaOneEgimi  = Math.max(0, Math.min(100, (burunOrani - 0.15) / 0.5 * 100));
+    kafaGeriEgimi = Math.max(0, Math.min(100, (-burunOrani + 0.05) / 0.35 * 100));
+  }
+
+  // Gövde öne eğimi: omuz merkezinin kalça merkezine göre x sapması
+  // Dik oturuşta omuz ve kalça neredeyse aynı x'te olmalı
+  var govdeEgimi = 0;
+  var kalcaGorunum = (lm[23].visibility || 0) + (lm[24].visibility || 0);
+  if (kalcaGorunum > 0.8 && kalcaGen > 20) {
+    var omuzKalcaFark = Math.abs(omuzOrta.x - kalcaOrta.x);
+    govdeEgimi = Math.min(100, omuzKalcaFark / (kalcaGen * 0.45) * 100);
+  }
+
+  // Göz eğimi (baş eğimini destekler)
+  var gozEgimi = Math.abs(solGoz.y - sagGoz.y) / YUKSEKLIK * 100;
+
+  return { boynuAci, basEgimi, omuzEgimi, gerginlik, solGerginlik, sagGerginlik,
+           mesafeOrani, merkezKayma, kafaOneEgimi, kafaGeriEgimi, govdeEgimi, gozEgimi,
+           solKulak, sagKulak, solOmuz, sagOmuz, solKalca, sagKalca,
+           kulakOrta, omuzOrta, kalcaOrta, omuzGen, kalcaGen,
+           burun, solGoz, sagGoz, gozOrta,
+           kalcaGorunum };
+}
+
+function durumBelirle(d, u, k) { return d < u ? 'iyi' : d < k ? 'orta' : 'kotu'; }
+function durumRengi(d) { return d==='iyi' ? '#22c55e' : d==='orta' ? '#f59e0b' : '#ef4444'; }
+
+// Kulak-omuz mesafesine göre sürekli renk geçişi: yeşil → sarı → kırmızı
+function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+function gradyanRenk(val, iyi, kotu) {
+  if (val <= 0) return '#22c55e';
+  if (val >= kotu) return '#ef4444';
+  var g = [34, 197, 94], y = [245, 158, 11], r = [239, 68, 68];
+  var from, to, t;
+  if (val <= iyi) {
+    from = g; to = y; t = val / iyi;
+  } else {
+    from = y; to = r; t = (val - iyi) / (kotu - iyi);
+  }
+  var c = [lerp(from[0],to[0],t), lerp(from[1],to[1],t), lerp(from[2],to[2],t)];
+  return '#' + c.map(function(x){ return x.toString(16).padStart(2,'0'); }).join('');
+}
+
+// Sürekli (continuous) metrik puanı: iyi eşiğinde 100, kötü eşiğinde 60, 2x kötü eşiğinde 0
+function metrikSkor(val, iyi, kotu) {
+  if (val <= iyi) return 100;
+  if (val <= kotu) return 100 - ((val - iyi) / (kotu - iyi)) * 40;
+  return Math.max(0, 60 - ((val - kotu) / (kotu * 0.9)) * 60);
+}
+
+function satirGuncelle(key, deger, ue, ke, maks, birim) {
+  if (!birim) birim = '°';
+  var durum = durumBelirle(deger, ue, ke);
+  var renk  = durumRengi(durum);
+  var map   = { iyi:['Normal','d-iyi'], orta:['Dikkat','d-orta'], kotu:['Bozuk','d-kotu'] };
+  var yuzde = Math.min(100, deger/maks*100);
+  document.getElementById('d-'+key).textContent  = deger.toFixed(1)+birim;
+  document.getElementById('d-'+key).style.color  = renk;
+  document.getElementById('b-'+key).style.width  = yuzde+'%';
+  document.getElementById('b-'+key).style.background = renk;
+  var el = document.getElementById('e-'+key);
+  el.textContent = map[durum][0]; el.className = 'durum-etiket ' + map[durum][1];
+  return durum;
+}
+
+function skorGuncelle(skor) {
+  var cevre  = 2*Math.PI*55;
+  document.getElementById('halkaOn').style.strokeDashoffset = cevre*(1-skor/100);
+  var renk, ac;
+  if (skor>95)       { renk='#22c55e'; ac='Mükemmel Duruş ✓'; }
+  else if (skor>=80) { renk='#84cc16'; ac='İyi Duruş'; }
+  else if (skor>=70) { renk='#f59e0b'; ac='İdare Eder'; }
+  else if (skor>=60) { renk='#f97316'; ac='Duruşa Dikkat Et!'; }
+  else               { renk='#ef4444'; ac='Kötü Duruş!'; }
+  document.getElementById('halkaOn').style.stroke           = renk;
+  document.getElementById('halkaSayi').textContent          = Math.round(skor);
+  document.getElementById('halkaSayi').style.color          = renk;
+  document.getElementById('halkaAciklama').textContent      = ac;
+  document.getElementById('halkaAciklama').style.color      = renk;
+  document.getElementById('st-skor').textContent            = Math.round(skor);
+  document.getElementById('st-skor').style.color            = renk;
+  document.getElementById('ekran-uyari').classList.toggle('aktif', skor < 75);
+}
+
+function uyarilariGuncelle(sorunlar) {
+  document.getElementById('st-sorun').textContent = sorunlar.length;
+  if (sorunlar.length === 0) {
+    document.getElementById('uyariListesi').innerHTML = '<div class="uyari-yok">✓ Harika! Duruşun sağlıklı görünüyor</div>';
+    return;
+  }
+  var html = '';
+  sorunlar.forEach(function(s) {
+    html += '<div class="uyari-satir"><span class="uyari-ikon">'+s.ikon+'</span><div><div class="uyari-baslik">'+s.mesaj+'</div><div class="uyari-not">'+s.ipucu+'</div></div></div>';
+  });
+  document.getElementById('uyariListesi').innerHTML = html;
+}
+
+// ============================================================
+// CANVAS ÇİZİM SİSTEMİ
+// MediaPipe'dan gelen landmark noktaları canvas üzerine çiziliyor.
+// iskBaglar → hangi noktalar arası çizgi çekilecek (iskelet)
+// iskNoktalar → hangi noktalara daire çizilecek
+// Renk: yeşil = iyi duruş, sarı = orta, kırmızı = kötü
+// Video yatay aynalı (scaleX(-1)) olduğu için x koordinatı
+// 1'den çıkarılıyor → (1 - lm.x) * GENISLIK
+// ============================================================
+var iskBaglar = [
+  [0,7],[0,8],           // burun → kulaklar
+  [7,8],                 // kulak çizgisi
+  [11,12],               // omuz çizgisi
+  [7,11],[8,12],         // kulak → omuz (boyun yan)
+  [11,13],[13,15],       // sol kol
+  [12,14],[14,16],       // sağ kol
+  [11,23],[12,24],       // omuz → kalça (gövde kenarları)
+  [23,24]                // kalça çizgisi
+];
+var iskNoktalar = [0,7,8,11,12,13,14,15,16,23,24];
+
+function iskeletCiz(lm, renk) {
+  ctx.strokeStyle = renk+'aa'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  iskBaglar.forEach(function(b) {
+    if (!lm[b[0]] || !lm[b[1]]) return;
+    ctx.beginPath();
+    ctx.moveTo((1-lm[b[0]].x)*GENISLIK, lm[b[0]].y*YUKSEKLIK);
+    ctx.lineTo((1-lm[b[1]].x)*GENISLIK, lm[b[1]].y*YUKSEKLIK);
+    ctx.stroke();
+  });
+  ctx.fillStyle = renk;
+  iskNoktalar.forEach(function(i) {
+    if (!lm[i]) return;
+    ctx.beginPath();
+    ctx.arc((1-lm[i].x)*GENISLIK, lm[i].y*YUKSEKLIK, 4, 0, Math.PI*2);
+    ctx.fill();
+  });
+}
+
+function cizgi(p1,p2,renk,kalinlik) {
+  ctx.strokeStyle=renk; ctx.lineWidth=kalinlik||3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+}
+function daire(p,renk,r) {
+  ctx.fillStyle=renk; ctx.beginPath(); ctx.arc(p.x,p.y,r||6,0,Math.PI*2); ctx.fill();
+}
+function dikeyRef(x) {
+  ctx.strokeStyle='rgba(250,204,21,.28)'; ctx.lineWidth=1;
+  ctx.setLineDash([5,6]); ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,YUKSEKLIK); ctx.stroke(); ctx.setLineDash([]);
+}
+function aciYayi(merkez,p1,p2,r,renk) {
+  var a1=Math.atan2(p1.y-merkez.y,p1.x-merkez.x), a2=Math.atan2(p2.y-merkez.y,p2.x-merkez.x);
+  ctx.save(); ctx.strokeStyle=renk; ctx.lineWidth=2; ctx.globalAlpha=.65;
+  ctx.beginPath(); ctx.arc(merkez.x,merkez.y,r,a1,a2); ctx.stroke(); ctx.restore();
+}
+function kanvasYazi(metin,p,renk,dx,dy) {
+  dx=dx||8; dy=dy||-6;
+  ctx.save(); ctx.font='bold 11px Segoe UI';
+  var tw=ctx.measureText(metin).width;
+  ctx.fillStyle='rgba(0,0,0,.65)'; ctx.fillRect(p.x+dx-2,p.y+dy-12,tw+4,15);
+  ctx.fillStyle=renk; ctx.fillText(metin,p.x+dx,p.y+dy); ctx.restore();
+}
+
+// ============================================================
+// ANA POSTUR KARE İŞLEME
+// MediaPipe her kare analiz ettiğinde bu fonksiyonu çağırır.
+// Sırası ile şunları yapar:
+//   1. Kişi bulunamadıysa uyarı göster ve çık
+//   2. Landmark'ları EMA ile yumuşat
+//   3. Tüm postür metriklerini hesapla
+//   4. Her metrik için durum belirle (iyi/orta/kötü)
+//   5. Sürekli puanlama ile genel skor hesapla (0-100)
+//   6. Zayıf halka etkisini uygula (en kötü bölge skoru ağırlar)
+//   7. Sorun listesi oluştur + sesli uyarı sırala
+//   8. Canvas üzerine iskelet ve açı çizgileri çiz
+//   9. Panel metriklerini güncelle
+//  10. Backend'e toplu kayıt gönder
+// ============================================================
+function sonucIsle(sonuc) {
+  ctx.clearRect(0,0,GENISLIK,YUKSEKLIK);
+
+  if (!sonuc.poseLandmarks) {
+    document.getElementById('durumYazi').textContent   = 'Kişi Bulunamadı';
+    document.getElementById('durumNokta').className    = 'nokta';
+    document.getElementById('kameraCerceve').className = '';
+    document.getElementById('kameraYazi').className    = '';
+    document.getElementById('tehlikeBorder').classList.remove('acik');
+    return;
+  }
+
+  document.getElementById('durumNokta').className  = 'nokta canli';
+  document.getElementById('durumYazi').textContent = 'Analiz Ediliyor';
+
+  var lm   = smoothLm(sonuc.poseLandmarks);
+  var veri = posturHesapla(lm);
+
+  if (kalibModu) kalibVeri.push({
+    boyun:       veri.boynuAci,
+    mesafeOrani: veri.mesafeOrani,
+    omuz:        veri.omuzEgimi,
+    bas:         veri.basEgimi,
+    merkez:      veri.merkezKayma,
+    kafa:        veri.kafaOneEgimi,
+    kafaGeri:    veri.kafaGeriEgimi,
+  });
+
+  var boynDurum  = durumBelirle(veri.boynuAci,    KALIB.boyun.iyi,     KALIB.boyun.kotu);
+  var basDurum   = durumBelirle(veri.basEgimi,     KALIB.bas.iyi,       KALIB.bas.kotu);
+  var omuzDurum  = durumBelirle(veri.omuzEgimi,    KALIB.omuz.iyi,      KALIB.omuz.kotu);
+  var gergDurum  = durumBelirle(veri.gerginlik,    KALIB.gerginlik.iyi, KALIB.gerginlik.kotu);
+  var merkDurum  = durumBelirle(veri.merkezKayma,  KALIB.merkez.iyi,    KALIB.merkez.kotu);
+  var kafaDurum     = durumBelirle(veri.kafaOneEgimi,  KALIB.kafa.iyi,      KALIB.kafa.kotu);
+  var kafaGeriDurum = durumBelirle(veri.kafaGeriEgimi, KALIB.kafaGeri.iyi,  KALIB.kafaGeri.kotu);
+  var govdeDurum = veri.kalcaGorunum > 0.8
+    ? durumBelirle(veri.govdeEgimi, 5, 15) : 'iyi';
+
+  // Sürekli puanlama — her metrik 0-100 arası
+  var boynSkor      = metrikSkor(veri.boynuAci,      KALIB.boyun.iyi,     KALIB.boyun.kotu);
+  var basSkor       = metrikSkor(veri.basEgimi,       KALIB.bas.iyi,       KALIB.bas.kotu);
+  var omuzSkor      = metrikSkor(veri.omuzEgimi,      KALIB.omuz.iyi,      KALIB.omuz.kotu);
+  var gergSkor      = metrikSkor(veri.gerginlik,      KALIB.gerginlik.iyi, KALIB.gerginlik.kotu);
+  var merkSkor      = metrikSkor(veri.merkezKayma,    KALIB.merkez.iyi,    KALIB.merkez.kotu);
+  var kafaSkor      = metrikSkor(veri.kafaOneEgimi,   KALIB.kafa.iyi,      KALIB.kafa.kotu);
+  var kafaGeriSkor  = metrikSkor(veri.kafaGeriEgimi,  KALIB.kafaGeri.iyi,  KALIB.kafaGeri.kotu);
+  var govdeSkor     = veri.kalcaGorunum > 0.8
+    ? metrikSkor(veri.govdeEgimi, 5, 15) : 100;
+
+  // Ağırlıklı ortalama — kafaGeri kafa öne ile aynı ağırlığı paylaşır
+  var agirlikliOrtalama;
+  if (veri.kalcaGorunum > 0.8) {
+    agirlikliOrtalama = boynSkor*0.20 + kafaSkor*0.17 + kafaGeriSkor*0.07 + basSkor*0.07
+                      + omuzSkor*0.11 + gergSkor*0.18 + merkSkor*0.10 + govdeSkor*0.10;
+  } else {
+    agirlikliOrtalama = boynSkor*0.22 + kafaSkor*0.19 + kafaGeriSkor*0.08 + basSkor*0.07
+                      + omuzSkor*0.12 + gergSkor*0.20 + merkSkor*0.12;
+  }
+
+  // Zayıf halka etkisi: en kötü metrik skoru %40 ağırlık taşır.
+  var minSkor = Math.min(boynSkor, kafaSkor, kafaGeriSkor, basSkor, omuzSkor, gergSkor, merkSkor, govdeSkor);
+  var toplam  = agirlikliOrtalama * 0.60 + minSkor * 0.40;
+
+  // Her bölge için sorun tespiti yapılıyor.
+  // Her sorunun üç özelliği var:
+  //   ikon     → ekranda gösterilen uyarı ikonu
+  //   mesaj    → kısa ekran yazısı
+  //   sesliMesaj → konuşma sentezi ile söylenecek profesyonel Türkçe metin (hangi bölge belirtiliyor)
+  //   ipucu    → uyarı kartının alt satırındaki kısa öneri
+  var sorunlar = [];
+
+  // --- BOYUN ÖNE EĞİMİ ---
+  if (boynDurum==='kotu') sorunlar.push({
+    ikon:'🚨', mesaj:'Ciddi boyun eğimi!',
+    sesliMesaj:'Boyun bölgesinde ciddi uyarı. Boyununuz ileri yönde tehlikeli biçimde eğilmiş. Lütfen hemen başınızı geri çekin ve çenenizi hafifçe içe alın.',
+    ipucu:'Başını geri çek, çeneni hafifçe içe al.'
+  });
+  else if (boynDurum==='orta') sorunlar.push({
+    ikon:'🔴', mesaj:'Boyun öne eğik',
+    sesliMesaj:'Boyun bölgesi uyarısı. Boyununuz öne doğru eğilmiş durumda. Kulağınızı omzunuzun hizasına getirerek düzeltin.',
+    ipucu:'Kulağın omzun hizasında olmalı.'
+  });
+
+  // --- KAFA ÖNE EĞİMİ ---
+  if (kafaDurum==='kotu') sorunlar.push({
+    ikon:'🚨', mesaj:'Kafa çok öne eğilmiş!',
+    sesliMesaj:'Kafa ve boyun bölgesinde ciddi uyarı. Başınız çok fazla öne doğru eğilmiş. Ekranı göz hizasına yükseltin ve başınızı dik tutun.',
+    ipucu:'Ekranı göz hizasına yükselt, başını dik tut.'
+  });
+  else if (kafaDurum==='orta') sorunlar.push({
+    ikon:'🔴', mesaj:'Kafa öne eğik',
+    sesliMesaj:'Kafa pozisyonu uyarısı. Başınız öne doğru eğilmiş. Hafifçe geri kaldırın ve gözlerinizi ekran ortasına hizalayın.',
+    ipucu:'Başını hafifçe geri al.'
+  });
+
+  // --- KAFA GERİ EĞİMİ (yukarı bakış / boyun hiperekstensiyon) ---
+  if (kafaGeriDurum==='kotu') sorunlar.push({
+    ikon:'🚨', mesaj:'Baş çok geriye eğilmiş!',
+    sesliMesaj:'Boyun hiperekstensiyon uyarısı. Başınız çok fazla geriye eğilmiş, yukarı bakıyorsunuz. Bu boyun fıtığı ve servikal omurga hasarı riskini artırır. Lütfen ekranı göz seviyesine indirin ve başınızı dik tutun.',
+    ipucu:'Ekranı aşağı al, başını dik tut, çeneni içe çek.'
+  });
+  else if (kafaGeriDurum==='orta') sorunlar.push({
+    ikon:'🔴', mesaj:'Baş geriye eğilmiş',
+    sesliMesaj:'Boyun pozisyonu uyarısı. Başınız geriye eğilmiş, yukarıya bakıyorsunuz. Ekranınızı göz hizasına getirin ve çenenizi hafifçe içe alın.',
+    ipucu:'Ekranı göz hizasına getir, çeneni içe al.'
+  });
+
+  // --- BAŞ YANI EĞİMİ ---
+  if (basDurum==='kotu') sorunlar.push({
+    ikon:'🔴', mesaj:'Baş belirgin yana eğik',
+    sesliMesaj:'Baş eğimi uyarısı. Başınız yana belirgin şekilde eğilmiş. Her iki kulağınızı aynı yüksekliğe getirerek başınızı dik tutun.',
+    ipucu:'Telefona bakıyor olabilirsin.'
+  });
+  else if (basDurum==='orta') sorunlar.push({
+    ikon:'🟡', mesaj:'Baş hafif yana eğik',
+    sesliMesaj:'Baş eğimi uyarısı. Başınız hafif yana eğilmiş. Düzeltin, iki kulağınız aynı yükseklikte olmalı.',
+    ipucu:'İki kulak aynı yükseklikte olmalı.'
+  });
+
+  // --- OMUZ EĞİMİ ---
+  if (omuzDurum==='kotu') sorunlar.push({
+    ikon:'🔴', mesaj:'Omuz dengesizliği var!',
+    sesliMesaj:'Omuz bölgesi uyarısı. Omuzlarınız eğri ve dengesiz durmuş. İki omzunuzu eşit yüksekliğe getirin.',
+    ipucu:'İki omzunu eşit seviyede tut.'
+  });
+  else if (omuzDurum==='orta') sorunlar.push({
+    ikon:'🟡', mesaj:'Omuz hafif eğik',
+    sesliMesaj:'Omuz bölgesi uyarısı. Bir omzunuz diğerinden yüksekte. Omuz hattınızı yatay olarak düzeltin.',
+    ipucu:'Omuzlarını düzleştir.'
+  });
+
+  // --- OMUZ GERGİNLİĞİ ---
+  if (gergDurum==='kotu') sorunlar.push({
+    ikon:'🚨', mesaj:'Omuz gerginliği çok yüksek!',
+    sesliMesaj:'Omuz gerginliği uyarısı. Omuzlarınız yukarı kalkık ve kasılmış durumda. Lütfen omuzlarınızı aşağı doğru bırakın ve derin bir nefes alın.',
+    ipucu:'Omuzlarını aşağı bırak, nefes ver.'
+  });
+  else if (gergDurum==='orta') sorunlar.push({
+    ikon:'🟡', mesaj:'Omuzlar hafif gerilmiş',
+    sesliMesaj:'Omuz gerginliği uyarısı. Omuzlarınız hafifçe gerilmiş. Bilinçli olarak omuzlarınızı gevşetin ve aşağı bırakın.',
+    ipucu:'Farkında olmadan omuz kaldırıyor olabilirsin.'
+  });
+
+  // --- MERKEZ KAYMASI ---
+  if (merkDurum==='kotu') sorunlar.push({
+    ikon:'🔴', mesaj:'Baş yana kaymış',
+    sesliMesaj:'Merkez hizası uyarısı. Başınız omuzlarınızın ortasından yana kaymış durumda. Başınızı iki omzunuzun tam ortasına hizalayın.',
+    ipucu:'Başını omuz ortasına hizala.'
+  });
+  else if (merkDurum==='orta') sorunlar.push({
+    ikon:'🟡', mesaj:'Baş hafif yana kaymış',
+    sesliMesaj:'Merkez hizası uyarısı. Başınız hafif yana kaymış. Gövdenize göre başınızı ortaya alın.',
+    ipucu:'Gövdeye göre başını ortala.'
+  });
+
+  // --- GÖVDE EĞİMİ (kalça görünüyorsa) ---
+  if (govdeDurum==='kotu') sorunlar.push({
+    ikon:'🚨', mesaj:'Gövde öne eğilmiş!',
+    sesliMesaj:'Gövde bölgesi uyarısı. Üst gövdeniz öne doğru eğilmiş. Bel desteğinizi kullanın ve omuzlarınızı kalçanızın üzerine dik şekilde hizalayın.',
+    ipucu:'Beli dik tut, omuzları kalça üzerinde hizala.'
+  });
+  else if (govdeDurum==='orta') sorunlar.push({
+    ikon:'🟡', mesaj:'Gövde hafif öne eğik',
+    sesliMesaj:'Gövde pozisyonu uyarısı. Hafifçe öne doğru eğilmişsiniz. Oturma pozisyonunuzu kontrol edin ve beli düzeltin.',
+    ipucu:'Oturma pozisyonunu kontrol et.'
+  });
+
+  // Canvas cizim
+  var iskRenk = toplam>=80 ? '#22c55e' : toplam>=70 ? '#f59e0b' : '#ef4444';
+  iskeletCiz(lm, iskRenk);
+  dikeyRef(veri.omuzOrta.x);
+
+  // Boyun hattı (omuz ortası → kulak ortası)
+  cizgi(veri.omuzOrta, veri.kulakOrta, durumRengi(boynDurum), 4);
+  // Kafa öne eğimi hattı (kulak ortası → burun)
+  cizgi(veri.kulakOrta, veri.burun, durumRengi(kafaDurum), 3);
+  // Omuz çizgisi
+  cizgi(veri.solOmuz, veri.sagOmuz, durumRengi(omuzDurum), 3.5);
+  // Kulak çizgisi (baş eğimi)
+  cizgi(veri.solKulak, veri.sagKulak, durumRengi(basDurum), 2.5);
+  // Omuz gerginlik hatları (kulak → omuz) — her omuz kendi gerginliğine göre renklendirilir
+  cizgi(veri.solKulak, veri.solOmuz, durumRengi(durumBelirle(veri.solGerginlik, 22, 45)), 2);
+  cizgi(veri.sagKulak, veri.sagOmuz, durumRengi(durumBelirle(veri.sagGerginlik, 22, 45)), 2);
+  // Gövde hizası (kalça görünürse omuz-kalça hattı)
+  if (veri.kalcaGorunum > 0.6) {
+    cizgi(veri.omuzOrta, veri.kalcaOrta, durumRengi(govdeDurum), 3);
+    cizgi(veri.solKalca, veri.sagKalca, durumRengi(govdeDurum), 3);
+    daire(veri.kalcaOrta, '#ffffff', 5);
+    daire(veri.solKalca, iskRenk, 4);
+    daire(veri.sagKalca, iskRenk, 4);
+    kanvasYazi('Gövde '+veri.govdeEgimi.toFixed(0)+'%', veri.kalcaOrta, durumRengi(govdeDurum), 8, -4);
+  }
+  // Boyun açı yayı
+  var dikeySabit = {x:veri.omuzOrta.x, y:veri.omuzOrta.y-52};
+  aciYayi(veri.omuzOrta, dikeySabit, veri.kulakOrta, 40, durumRengi(boynDurum));
+  // Noktalar
+  daire(veri.omuzOrta,'#ffffff',5); daire(veri.kulakOrta,'#ffffff',4);
+  daire(veri.burun, '#ffffff', 4);
+  daire(veri.solKulak,iskRenk,4); daire(veri.sagKulak,iskRenk,4);
+  daire(veri.solOmuz,iskRenk,4);  daire(veri.sagOmuz,iskRenk,4);
+  // Etiketler
+  kanvasYazi('Boyun '+veri.boynuAci.toFixed(0)+'°',    ortaNokta(veri.omuzOrta,veri.kulakOrta), durumRengi(boynDurum), 8, -4);
+  var kafaEtiket = veri.kafaGeriEgimi > veri.kafaOneEgimi
+    ? 'Geri ' + veri.kafaGeriEgimi.toFixed(0) + '%'
+    : 'Kafa ' + veri.kafaOneEgimi.toFixed(0) + '%';
+  var kafaEtiketDurum = veri.kafaGeriEgimi > veri.kafaOneEgimi ? kafaGeriDurum : kafaDurum;
+  kanvasYazi(kafaEtiket, ortaNokta(veri.kulakOrta,veri.burun), durumRengi(kafaEtiketDurum), 6, -4);
+  kanvasYazi('Omuz '+veri.omuzEgimi.toFixed(0)+'°',     ortaNokta(veri.solOmuz,veri.sagOmuz),   durumRengi(omuzDurum), 6, 16);
+  var gergRenk = gradyanRenk(veri.gerginlik, KALIB.gerginlik.iyi, KALIB.gerginlik.kotu);
+  kanvasYazi('Gerg. %'+veri.gerginlik.toFixed(0), veri.omuzOrta, gergRenk, -82, 20);
+
+  // Panel guncelle
+  skorGuncelle(toplam);
+  satirGuncelle('boyun',    veri.boynuAci,     KALIB.boyun.iyi,     KALIB.boyun.kotu,     40);
+  satirGuncelle('bas',      veri.basEgimi,     KALIB.bas.iyi,       KALIB.bas.kotu,       12, '%');
+  satirGuncelle('omuz',     veri.omuzEgimi,    KALIB.omuz.iyi,      KALIB.omuz.kotu,      18);
+  satirGuncelle('gerginlik',veri.gerginlik,    KALIB.gerginlik.iyi, KALIB.gerginlik.kotu, 80, '%');
+  document.getElementById('b-gerginlik').style.background = gergRenk;
+  document.getElementById('d-gerginlik').style.color      = gergRenk;
+  satirGuncelle('merkez',   veri.merkezKayma,  KALIB.merkez.iyi,    KALIB.merkez.kotu,    25, '%');
+  satirGuncelle('kafa',     veri.kafaOneEgimi, KALIB.kafa.iyi,      KALIB.kafa.kotu,      70, '%');
+  uyarilariGuncelle(sorunlar);
+
+  toplamKare++;
+  if (sorunlar.length === 0) iyiKare++;
+  document.getElementById('st-iyi').textContent = Math.round(iyiKare/toplamKare*100) + '%';
+
+  // Kamera cerceve
+  if (sorunlar.length === 0) {
+    document.getElementById('kameraCerceve').className = 'iyi';
+    document.getElementById('kameraYazi').className    = 'iyi';
+    document.getElementById('kameraYazi').textContent  = '✓ Duruş Güzel';
+    document.getElementById('tehlikeBorder').classList.remove('acik');
+    document.getElementById('buyukUyari').classList.remove('goster');
+  } else {
+    var enKotu = sorunlar.find(function(s){return s.ikon==='🚨';}) || sorunlar[0];
+    document.getElementById('kameraCerceve').className = 'kotu';
+    document.getElementById('kameraYazi').className    = 'kotu';
+    document.getElementById('kameraYazi').textContent  = '⚠ ' + enKotu.mesaj;
+    document.getElementById('tehlikeBorder').classList.add('acik');
+
+    var simdi = Date.now();
+    if (toplam < 60 && simdi - sonBuyukUyari > 5000) {
+      sonBuyukUyari = simdi; uyariSayisi++;
+      document.getElementById('st-uyari').textContent = uyariSayisi;
+      document.getElementById('buyukUyariAlt').textContent = enKotu.mesaj;
+      document.getElementById('buyukUyari').classList.remove('goster');
+      void document.getElementById('buyukUyari').offsetWidth;
+      document.getElementById('buyukUyari').classList.add('goster');
+      setTimeout(function(){document.getElementById('buyukUyari').classList.remove('goster');}, 2800);
+    }
+    // Sesli uyarı: her sorun için ayrı mesaj, sırayla 4 saniyede bir
+    if (toplam < 70 && sorunlar.length > 0) {
+      var sira = _sesliSira % sorunlar.length;
+      var sesSorun = sorunlar[sira];
+      if (sesliBildir(sesSorun.sesliMesaj)) {
+        _sesliSira++;
+      }
+    }
+  }
+
+  // Backend'e kaydet
+  var durum = sorunlar.length===0?'good':toplam<60?'bad':'warning';
+  kayitGonder({
+    score: Math.round(toplam),
+    neck_angle: parseFloat(veri.boynuAci.toFixed(2)),
+    head_tilt: parseFloat(veri.basEgimi.toFixed(2)),
+    shoulder_tilt: parseFloat(veri.omuzEgimi.toFixed(2)),
+    tension: parseFloat(veri.gerginlik.toFixed(2)),
+    center_offset: parseFloat(veri.merkezKayma.toFixed(2)),
+    status: durum,
+  });
+}
+
+// ============================================================
+// MEDiAPIPE KURULUMU VE KAMERA DÖNGÜSÜ
+// MediaPipe Pose modelini yüklüyoruz. modelComplexity:2 en doğru
+// ama en yavaş model. Kamera açıldığında setInterval ile her 80ms'de
+// bir kare analiz ediyoruz. Camera utility yerine setInterval kullanıyoruz
+// çünkü Camera utility arka plan sekmede duruyordu — setInterval durmuyor.
+// ============================================================
+var pose = new Pose({
+  locateFile: function(f) { return 'https://cdn.jsdelivr.net/npm/@mediapipe/pose/' + f; }
+});
+pose.setOptions({ modelComplexity:2, smoothLandmarks:true, enableSegmentation:false, minDetectionConfidence:.7, minTrackingConfidence:.7 });
+pose.onResults(sonucIsle);
+
+// setInterval tabanlı kamera döngüsü — arka planda sekme de çalışmaya devam eder
+navigator.mediaDevices.getUserMedia({ video:{ width:GENISLIK, height:YUKSEKLIK, facingMode:'user' } })
+  .then(function(stream) {
+    videoEl.srcObject = stream;
+    document.getElementById('durumNokta').className  = 'nokta canli';
+    document.getElementById('durumYazi').textContent = 'Kamera Bağlandı';
+
+    var isleniyor = false;
+    setInterval(async function() {
+      if (isleniyor || videoEl.readyState < 2 || videoEl.paused) return;
+      isleniyor = true;
+      try { await pose.send({ image: videoEl }); } catch {}
+      isleniyor = false;
+    }, 80); // ~12fps — arka planda da kesintisiz çalışır
+  })
+  .catch(function(err) {
+    var ad = (err && err.name) || '';
+    var mesaj, ipucu;
+    if (ad === 'NotAllowedError' || ad === 'PermissionDeniedError') {
+      mesaj = '🚫 Kamera İzni Reddedildi';
+      ipucu = 'Adres çubuğundaki <strong>🔒 kilit simgesine</strong> tıklayın → Kamera → <strong>"İzin Ver"</strong> seçin, ardından sayfayı yenileyin.';
+    } else if (ad === 'NotFoundError' || ad === 'DevicesNotFoundError') {
+      mesaj = '📷 Kamera Bulunamadı';
+      ipucu = 'Bilgisayarınıza bağlı bir kamera bulunamadı. Kameranızın takılı ve çalışır durumda olduğundan emin olun.';
+    } else if (ad === 'NotReadableError' || ad === 'TrackStartError') {
+      mesaj = '⚠️ Kamera Başka Uygulamada Açık';
+      ipucu = 'Kamera Zoom, Teams, Meet gibi başka bir uygulama tarafından kullanılıyor. O uygulamayı kapatıp sayfayı yenileyin.';
+    } else {
+      mesaj = '❌ Kamera Erişimi Başarısız';
+      ipucu = 'HTTPS üzerinden bağlandığınızdan emin olun. Tarayıcı izinlerini kontrol edin veya farklı bir tarayıcı deneyin.';
+    }
+    document.getElementById('durumNokta').style.background = '#ef4444';
+    document.getElementById('durumYazi').textContent = 'Kamera hatası';
+    document.querySelector('.kamera-kutu').innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+      'height:100%;gap:16px;padding:32px;text-align:center;background:#0f172a;border-radius:12px;">' +
+      '<div style="font-size:52px;line-height:1">' + mesaj.split(' ')[0] + '</div>' +
+      '<div style="font-size:15px;font-weight:700;color:#ef4444">' + mesaj.slice(mesaj.indexOf(' ')+1) + '</div>' +
+      '<div style="font-size:13px;color:#94a3b8;max-width:380px;line-height:1.7">' + ipucu + '</div>' +
+      '<button onclick="location.reload()" style="margin-top:4px;padding:10px 28px;background:#6366f1;' +
+      'color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;' +
+      'transition:opacity .2s" onmouseover="this.style.opacity=.85" onmouseout="this.style.opacity=1">' +
+      '🔄 Yeniden Dene</button>' +
+      '</div>';
+  });
+
+// ============================================================
+// GEÇMİŞ SEKMESİ
+// Backend'den son N günün postur kayıtlarını çekip gösterir.
+// grafikCiz() → canvas ile çizgi grafik
+// tabloGuncelle() → HTML tablo satırları
+// ============================================================
+var gecmisDays = 7; // Varsayılan olarak 7 günlük geçmiş gösterilir
+
+async function gecmisYukle(days, btnEl) {
+  gecmisDays = days;
+  document.querySelectorAll('.gun-btn').forEach(function(b) { b.classList.remove('aktif'); });
+  if (btnEl) btnEl.classList.add('aktif');
+
+  try {
+    var [histResp, statsResp, cmpResp] = await Promise.all([
+      fetch(API + '/posture/history?days='+days+'&limit=500', { headers: authHeaders() }),
+      fetch(API + '/posture/stats', { headers: authHeaders() }),
+      fetch(API + '/posture/weekly-comparison', { headers: authHeaders() }),
+    ]);
+    var histData  = await histResp.json();
+    var statsData = await statsResp.json();
+    var cmpData   = cmpResp.ok ? await cmpResp.json() : {};
+
+    grafikCiz(statsData.daily || []);
+    tabloGuncelle(histData.records || []);
+    if (cmpData.karsilastirma) karsilastirmaGoster(cmpData.karsilastirma);
+  } catch {
+    document.getElementById('gecmisSatirlar').innerHTML =
+      '<div style="padding:20px;text-align:center;color:#ef4444;font-size:13px">Veri yüklenemedi</div>';
+  }
+}
+
+function grafikCiz(daily) {
+  var c   = document.getElementById('gecmisGrafik');
+  var ctx2 = c.getContext('2d');
+  c.width  = c.offsetWidth || 800;
+  c.height = 160;
+
+  if (!daily || daily.length === 0) {
+    ctx2.fillStyle = '#64748b';
+    ctx2.font = '13px Segoe UI';
+    ctx2.fillText('Henüz veri yok', c.width/2 - 40, 80);
+    return;
+  }
+
+  var pad = { l:40, r:20, t:10, b:30 };
+  var w   = c.width - pad.l - pad.r;
+  var h   = c.height - pad.t - pad.b;
+
+  // Izgara
+  ctx2.strokeStyle = '#1e293b'; ctx2.lineWidth = 1;
+  [0,25,50,75,100].forEach(function(v) {
+    var y = pad.t + h - (v/100)*h;
+    ctx2.beginPath(); ctx2.moveTo(pad.l,y); ctx2.lineTo(pad.l+w,y); ctx2.stroke();
+    ctx2.fillStyle = '#475569'; ctx2.font = '10px Segoe UI';
+    ctx2.fillText(v, pad.l-28, y+4);
+  });
+
+  // Cizgi
+  var step = w / (daily.length-1 || 1);
+  ctx2.strokeStyle = '#6366f1'; ctx2.lineWidth = 2.5; ctx2.lineCap = 'round';
+  ctx2.beginPath();
+  daily.forEach(function(d, i) {
+    var x = pad.l + i*step;
+    var y = pad.t + h - (parseFloat(d.avg_score)/100)*h;
+    i===0 ? ctx2.moveTo(x,y) : ctx2.lineTo(x,y);
+  });
+  ctx2.stroke();
+
+  // Noktalar
+  ctx2.fillStyle = '#6366f1';
+  daily.forEach(function(d, i) {
+    var x = pad.l + i*step;
+    var y = pad.t + h - (parseFloat(d.avg_score)/100)*h;
+    ctx2.beginPath(); ctx2.arc(x,y,4,0,Math.PI*2); ctx2.fill();
+  });
+
+  // Tarih etiketleri
+  ctx2.fillStyle = '#475569'; ctx2.font = '9px Segoe UI';
+  var her = Math.ceil(daily.length/6);
+  daily.forEach(function(d, i) {
+    if (i % her !== 0 && i !== daily.length-1) return;
+    var x = pad.l + i*step;
+    ctx2.fillText(d.day ? d.day.substring(5) : '', x-10, pad.t+h+20);
+  });
+}
+
+function tabloGuncelle(records) {
+  if (records.length === 0) {
+    document.getElementById('gecmisSatirlar').innerHTML =
+      '<div style="padding:20px;text-align:center;color:#64748b;font-size:13px">Kayıtlı veri yok</div>';
+    return;
+  }
+
+  var statusMetin = { good:'İyi', warning:'Dikkat', bad:'Kötü' };
+  var statusSinif = { good:'status-good', warning:'status-warning', bad:'status-bad' };
+
+  var html = records.slice(0, 100).map(function(r) {
+    var tarih = r.recorded_at ? new Date(r.recorded_at).toLocaleString('tr-TR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '-';
+    return '<div class="tablo-satir">'
+      + '<span>' + tarih + '</span>'
+      + '<span style="color:' + (r.score>=70?'#22c55e':r.score>=45?'#f59e0b':'#ef4444') + '">' + r.score + '</span>'
+      + '<span>' + (r.neck_angle||'-') + '°</span>'
+      + '<span>' + (r.shoulder_tilt||'-') + '°</span>'
+      + '<span>' + (r.tension||'-') + '%</span>'
+      + '<span class="' + (statusSinif[r.status]||'') + '">' + (statusMetin[r.status]||r.status) + '</span>'
+      + '</div>';
+  }).join('');
+
+  document.getElementById('gecmisSatirlar').innerHTML = html;
+}
+
+// ============================================================
+// AI ASİSTAN SEKMESİ
+// İki farklı AI özelliği:
+//   1. Sağlık Risk Analizi → OpenAI GPT-4o-mini (ücretli, kota varsa)
+//      Kota dolunca Ollama llama3.2'ye (yerel, ücretsiz) geçer
+//   2. Kişisel Egzersiz Programı → Ollama llama3.2 (her zaman yerel)
+// Her iki sonuç da veritabanına kaydedilir, 24 saat cache'lenir.
+// ============================================================
+async function aiDurumKontrol() {
+  try {
+    var resp = await fetch(API + '/ai/status', { headers: authHeaders() });
+    var data = await resp.json();
+    if (!data.ollama_available) {
+      document.getElementById('ollamaUyari').style.display = 'block';
+    }
+  } catch {}
+}
+
+// Türkçe metinde kalan İngilizce kelimeleri Türkçeye çevirir
+var TR_DUZELTME = [
+  [/frequent\s+olarak/gi,   'sık olarak'],
+  [/regular\s+massage/gi,   'düzenli masaj'],
+  [/repeat\s+or/gi,         'tekrar veya'],
+  [/friend\s*size/gi,       'arkadaşlarınızla'],
+  [/back['']?[aı]?\b/gi,   'geri'],
+  [/frenteye\b/gi,          'öne doğru'],
+  [/\bfrente\b/gi,          'öne'],
+  [/\bslightly\b/gi,        'hafif'],
+  [/\bfrequently\b/gi,      'sıklıkla'],
+  [/\bfrequent\b/gi,        'sık'],
+  [/\bregularly\b/gi,       'düzenli olarak'],
+  [/\bregular\b/gi,         'düzenli'],
+  [/\bmassage\b/gi,         'masaj'],
+  [/\btogether\b/gi,        'birlikte'],
+  [/regionlarını\b/gi,      'bölgelerini'],
+  [/regionları\b/gi,        'bölgeleri'],
+  [/regionından\b/gi,       'bölgesinden'],
+  [/regionında\b/gi,        'bölgesinde'],
+  [/regionına\b/gi,         'bölgesine'],
+  [/regionını\b/gi,         'bölgesini'],
+  [/regionı\b/gi,           'bölgesi'],
+  [/\bregion\b/gi,          'bölge'],
+  [/\bseconds\b/gi,         'saniye'],
+  [/\bminutes\b/gi,         'dakika'],
+  [/\bweekly\b/gi,          'haftalık'],
+  [/\bdaily\b/gi,           'günlük'],
+  [/\bexercise\b/gi,        'egzersiz'],
+  [/\bstretching\b/gi,      'germe egzersizi'],
+  [/\bstretch\b/gi,         'germe'],
+  [/\bposture\b/gi,         'duruş'],
+  [/\btension\b/gi,         'gerginlik'],
+  [/\balignment\b/gi,       'hizalama'],
+  [/\bposition\b/gi,        'pozisyon'],
+  [/\bmuscles\b/gi,         'kaslar'],
+  [/\bmuscle\b/gi,          'kas'],
+  [/\bpain\b/gi,            'ağrı'],
+  [/\bneck\b/gi,            'boyun'],
+  [/\bshoulder\b/gi,        'omuz'],
+  [/\bspine\b/gi,           'omurga'],
+  [/\bslowly\b/gi,          'yavaşça'],
+  [/\bgently\b/gi,          'nazikçe'],
+  [/\brepeat\b/gi,          'tekrar'],
+  [/\bhold\b/gi,            'tut'],
+  [/\bkeep\b/gi,            'koru'],
+  [/\band\b/gi,             've'],
+  [/\bthe\b/gi,             ''],
+  [/\s{2,}/g,               ' '],
+];
+function tr(m) {
+  if (!m || typeof m !== 'string') return m || '';
+  var s = m;
+  TR_DUZELTME.forEach(function(c) { s = s.replace(c[0], c[1]); });
+  return s.trim();
+}
+
+async function saglikRiskiAl() {
+  var btn  = document.getElementById('riskBtn');
+  var sonuc = document.getElementById('riskSonuc');
+  btn.disabled = true; btn.textContent = '⏳ Analiz yapılıyor…';
+  sonuc.className = 'ai-sonuc'; sonuc.innerHTML = '';
+
+  try {
+    var resp = await fetch(API + '/ai/health-prediction', { headers: authHeaders() });
+    var data = await resp.json();
+
+    if (!resp.ok) {
+      sonuc.className = 'ai-sonuc goster';
+      sonuc.innerHTML = '<span style="color:#ef4444">' + (data.error || 'Hata oluştu') + '</span>';
+      return;
+    }
+
+    var p      = data.prediction;
+    var parsed = null;
+    try { parsed = JSON.parse(p.prediction_text); } catch { parsed = p; }
+
+    var riskRenk = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
+    var riskMetin = { low:'Düşük Risk', medium:'Orta Risk', high:'Yüksek Risk' };
+
+    var html = '<span class="risk-badge ' + (riskRenk[p.risk_level]||'') + '">'
+      + (riskMetin[p.risk_level]||p.risk_level) + '</span>';
+
+    if (parsed && parsed.summary) {
+      html += '<p style="margin-bottom:12px">' + tr(parsed.summary) + '</p>';
+    }
+
+    if (parsed && parsed.risks && parsed.risks.length) {
+      html += '<div style="margin-bottom:12px">';
+      parsed.risks.forEach(function(r) {
+        var pct = Math.round((r.probability||0)*100);
+        html += '<div class="risk-item">'
+          + '<div class="risk-item-baslik"><span class="risk-item-ad">'+tr(r.name)+'</span><span class="risk-item-pct">%'+pct+'</span></div>'
+          + '<div class="risk-mini-bar"><div class="risk-mini-ic" style="width:'+pct+'%"></div></div>'
+          + '<div style="font-size:11px;color:#64748b;margin-top:3px">'+tr(r.description)+'</div>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
+
+    if (parsed && parsed.recommendations && parsed.recommendations.length) {
+      html += '<div style="font-size:11px;color:#94a3b8"><strong style="color:#22d3ee;display:block;margin-bottom:4px">ÖNERİLER</strong>';
+      parsed.recommendations.forEach(function(r) {
+        html += '<div style="padding:2px 0">• ' + tr(r) + '</div>';
+      });
+      html += '</div>';
+    }
+
+    if (data.cached) html += '<div style="font-size:10px;color:#475569;margin-top:8px">✓ Önbellek (son 24 saat)</div>';
+
+    sonuc.className = 'ai-sonuc goster';
+    sonuc.innerHTML = html;
+  } catch {
+    sonuc.className = 'ai-sonuc goster';
+    sonuc.innerHTML = '<span style="color:#ef4444">Bağlantı hatası</span>';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analizi Yenile';
+  }
+}
+
+async function egzersizProgramiAl() {
+  var btn   = document.getElementById('egzBtn');
+  var sonuc = document.getElementById('egzSonuc');
+  btn.disabled = true; btn.textContent = '⏳ Program hazırlanıyor…';
+  sonuc.className = 'ai-sonuc'; sonuc.innerHTML = '';
+
+  try {
+    var resp = await fetch(API + '/ai/exercise-program', { headers: authHeaders() });
+    var data = await resp.json();
+
+    if (!resp.ok) {
+      sonuc.className = 'ai-sonuc goster';
+      sonuc.innerHTML = '<span style="color:#ef4444">' + (data.error||'Hata oluştu') + '</span>';
+      return;
+    }
+
+    var prog = data.program && (data.program.program || data.program);
+    if (typeof prog === 'string') { try { prog = JSON.parse(prog); } catch {} }
+
+    // Yeni format (egzersizler/baslik) veya eski format (exercises/title) destekle
+    var exercises = (prog.egzersizler || prog.exercises || []);
+    var title     = prog.baslik || prog.title || 'Kişisel Egzersiz Programı';
+    var sure      = prog.sure_hafta   || prog.duration_weeks;
+    var gunDk     = prog.gunluk_dakika|| prog.daily_minutes || 15;
+    var haftaGun  = prog.haftada_kac_gun;
+
+    var html = '<div style="font-weight:700;font-size:14px;color:#e2e8f0;margin-bottom:6px">' + title + '</div>';
+
+    if (sure) {
+      var metaBilgi = sure + ' hafta · Günde ' + gunDk + ' dakika';
+      if (haftaGun) metaBilgi += ' · Haftada ' + haftaGun + ' gün';
+      html += '<div style="font-size:11px;color:#64748b;margin-bottom:14px">' + metaBilgi + '</div>';
+    }
+
+    exercises.forEach(function(ex) {
+      var ad        = ex.ad        || ex.name        || '';
+      var set       = ex.set       || ex.sets        || '';
+      var tekrar    = ex.tekrar    || ex.reps        || '';
+      var bolge     = ex.hedef_bolge || ex.target    || '';
+      var nasil     = ex.nasil_yapilir || ex.description || '';
+      var fayda     = ex.faydalari || '';
+      var siklik    = ex.siklik    || '';
+
+      html += '<div class="egz-item">'
+        + '<div class="egz-item-baslik">' + tr(ad) + '</div>'
+        + '<div class="egz-item-meta">' + tr(set) + ' set · ' + tr(tekrar)
+          + (bolge ? ' · ' + tr(bolge) : '') + '</div>';
+
+      if (nasil)  html += '<div class="egz-item-acik" style="margin-top:5px"><strong style="color:#22d3ee;font-size:11px">Nasıl yapılır:</strong> ' + tr(nasil) + '</div>';
+      if (fayda)  html += '<div class="egz-item-acik" style="margin-top:4px"><strong style="color:#84cc16;font-size:11px">Faydaları:</strong> ' + tr(fayda) + '</div>';
+      if (siklik) html += '<div class="egz-item-acik" style="margin-top:4px;color:#f59e0b;font-size:11px">🗓 ' + tr(siklik) + '</div>';
+
+      html += '</div>';
+    });
+
+    if (prog.genel_notlar || prog.notes) {
+      html += '<div style="margin-top:12px;padding:10px;background:#0f172a;border-radius:8px;border:1px solid #1e293b;font-size:12px;color:#94a3b8">'
+        + '<strong style="color:#e2e8f0;display:block;margin-bottom:4px">Genel Notlar</strong>'
+        + (prog.genel_notlar || prog.notes) + '</div>';
+    }
+
+    if (data.cached) html += '<div style="font-size:10px;color:#475569;margin-top:8px">✓ Önbellek (son 3 gün)</div>';
+
+    sonuc.className = 'ai-sonuc goster';
+    sonuc.innerHTML = html;
+  } catch {
+    sonuc.className = 'ai-sonuc goster';
+    sonuc.innerHTML = '<span style="color:#ef4444">Bağlantı hatası</span>';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Programı Yenile';
+  }
+}
+
+// ============================================================
+// KALİBRASYON
+// ============================================================
+function kalibUIDuzenle() {
+  var btn  = document.getElementById('kalibBtn');
+  var sBtn = document.getElementById('kalibSifirlaBtn');
+  var dur  = document.getElementById('kalibDurum');
+  if (!btn) return;
+  var kalibre = !!localStorage.getItem('pt_kalibrasyon');
+  btn.className = kalibre ? 'kalib-btn kalibre' : 'kalib-btn';
+  btn.textContent = kalibre ? '✓ Kalibre Edildi' : '📐 Kalibre Et';
+  if (sBtn) sBtn.style.display = kalibre ? 'inline-block' : 'none';
+  if (kalibre && dur && !dur.textContent.startsWith('✓ Kalibre edildi')) {
+    var ref = KALIB.gerginlikRef;
+    dur.textContent = '✓ Kalibre edildi' + (ref !== undefined ? ' — ger.ref: ' + ref.toFixed(2) + ' | boyun eşik: ' + KALIB.boyun.iyi + '°' : '');
+    dur.style.color = '#22c55e';
+  }
+  if (dur)  dur.textContent   = kalibre ? 'Kişisel eşikler aktif' : 'Kişisel eşikler için kalibre edin';
+}
+kalibUIDuzenle();
+
+function kalibreBaslat() {
+  if (kalibModu) return;
+  var btn = document.getElementById('kalibBtn');
+  btn.disabled = true;
+  kalibVeri = [];
+  var sayac = 3;
+  btn.textContent = '⏳ Hazırlanın ' + sayac + '...';
+  var geri = setInterval(function() {
+    sayac--;
+    if (sayac > 0) {
+      btn.textContent = '⏳ Hazırlanın ' + sayac + '...';
+    } else {
+      clearInterval(geri);
+      kalibModu = true;
+      btn.textContent = '📐 Kaydediliyor...';
+      setTimeout(function() {
+        kalibModu = false;
+        if (kalibVeri.length >= 10) {
+          var ort = function(alan) {
+            return kalibVeri.reduce(function(s,v){ return s + (v[alan] || 0); }, 0) / kalibVeri.length;
+          };
+          var b  = ort('boyun');
+          var mO = ort('mesafeOrani'); // kişinin doğal kulak-omuz oranı
+          var o  = ort('omuz');
+          var ba = ort('bas');
+          var m  = ort('merkez');
+          var k  = ort('kafa');
+          var kg = ort('kafaGeri');
+
+          // Gerginlik referansını kişinin doğal anatomisine ayarla.
+          // Bundan sonra formula (ref - mevcut) / ref * 100 kullanır → doğal pozda sıfır.
+          KALIB.gerginlikRef = parseFloat(mO.toFixed(4));
+          KALIB.gerginlik = { iyi: 5, kotu: 10 };
+
+          // Diğer metrikler: doğal değer + tolerans
+          KALIB.boyun    = { iyi: Math.round(Math.max(b  +  4, 10)), kotu: Math.round(Math.max(b  + 14, 20)) };
+          KALIB.omuz     = { iyi: Math.round(Math.max(o  +  2,  3)), kotu: Math.round(Math.max(o  +  7,  8)) };
+          KALIB.bas      = { iyi: Math.round(Math.max(ba +  2,  3)), kotu: Math.round(Math.max(ba +  6,  8)) };
+          KALIB.merkez   = { iyi: Math.round(Math.max(m  +  3,  7)), kotu: Math.round(Math.max(m  +  9, 14)) };
+          KALIB.kafa     = { iyi: Math.round(Math.max(k  + 10, 20)), kotu: Math.round(Math.max(k  + 22, 32)) };
+          KALIB.kafaGeri = { iyi: Math.round(Math.max(kg +  8, 18)), kotu: Math.round(Math.max(kg + 22, 40)) };
+
+          localStorage.setItem('pt_kalibrasyon', JSON.stringify(KALIB));
+
+          var dur = document.getElementById('kalibDurum');
+          if (dur) {
+            dur.textContent = '✓ Kalibre edildi — boyun ' + b.toFixed(1) + '° | ger.ref ' + mO.toFixed(2) + ' | omuz ' + o.toFixed(1) + '°';
+            dur.style.color = '#22c55e';
+          }
+        } else {
+          var dur2 = document.getElementById('kalibDurum');
+          if (dur2) { dur2.textContent = '⚠️ Yeterli veri alınamadı, tekrar deneyin.'; dur2.style.color = '#f59e0b'; }
+        }
+        btn.disabled = false;
+        kalibUIDuzenle();
+      }, 6000);
+    }
+  }, 1000);
+}
+
+function kalibreSifirla() {
+  KALIB = {
+    boyun:     { iyi: 12, kotu: 22 },
+    bas:       { iyi:  3, kotu:  6 },
+    omuz:      { iyi:  4, kotu:  9 },
+    gerginlik: { iyi:  5, kotu: 10 },
+    merkez:    { iyi:  7, kotu: 14 },
+    kafa:      { iyi: 25, kotu: 35 },
+    kafaGeri:  { iyi: 20, kotu: 45 },
+    // gerginlikRef kaldırıldı — varsayılan 0.5 kullanılacak
+  };
+  localStorage.removeItem('pt_kalibrasyon');
+  var dur = document.getElementById('kalibDurum');
+  if (dur) { dur.textContent = 'Kişisel eşikler için kalibre edin'; dur.style.color = ''; }
+  kalibUIDuzenle();
+}
+
+// ============================================================
+// HAFTALIK KARŞILAŞTIRMA
+// ============================================================
+function karsilastirmaGoster(c) {
+  function okHtml(buVal, gecVal, yukariIyi) {
+    if (buVal == null || gecVal == null) return '<span class="trend-esit">–</span>';
+    var fark = parseFloat(buVal) - parseFloat(gecVal);
+    if (Math.abs(fark) < 0.5) return '<span class="trend-esit">→</span>';
+    var iyi = yukariIyi ? fark > 0 : fark < 0;
+    return '<span class="' + (iyi ? 'trend-yukari' : 'trend-asagi') + '">' + (fark > 0 ? '▲' : '▼') + ' ' + Math.abs(fark).toFixed(1) + '</span>';
+  }
+  function renkSkor(v)  { return parseFloat(v)>=80?'#22c55e':parseFloat(v)>=60?'#f59e0b':'#ef4444'; }
+  function renkIyi(v)   { return parseFloat(v)>=70?'#22c55e':parseFloat(v)>=50?'#f59e0b':'#ef4444'; }
+  function renkBoyun(v) { return parseFloat(v)<=12?'#22c55e':parseFloat(v)<=22?'#f59e0b':'#ef4444'; }
+  function renkGerg(v)  { return parseFloat(v)<=22?'#22c55e':parseFloat(v)<=45?'#f59e0b':'#ef4444'; }
+
+  var sSkor = c.bu_skor, sIyi = c.bu_iyi_pct, sBoyun = c.bu_boyun, sGerg = c.bu_gerginlik;
+
+  document.getElementById('kk-skor').textContent      = sSkor ?? '–';
+  document.getElementById('kk-skor').style.color       = sSkor ? renkSkor(sSkor) : '#94a3b8';
+  document.getElementById('kk-skor-alt').innerHTML     = 'Geçen hafta: ' + (c.gec_skor ?? '–') + ' ' + okHtml(sSkor, c.gec_skor, true);
+
+  document.getElementById('kk-iyi').textContent        = sIyi != null ? '%' + sIyi : '–';
+  document.getElementById('kk-iyi').style.color         = sIyi ? renkIyi(sIyi) : '#94a3b8';
+  document.getElementById('kk-iyi-alt').innerHTML       = 'Geçen hafta: ' + (c.gec_iyi_pct != null ? '%' + c.gec_iyi_pct : '–') + ' ' + okHtml(sIyi, c.gec_iyi_pct, true);
+
+  document.getElementById('kk-boyun').textContent      = sBoyun != null ? sBoyun + '°' : '–';
+  document.getElementById('kk-boyun').style.color       = sBoyun ? renkBoyun(sBoyun) : '#94a3b8';
+  document.getElementById('kk-boyun-alt').innerHTML     = 'Geçen hafta: ' + (c.gec_boyun != null ? c.gec_boyun + '°' : '–') + ' ' + okHtml(sBoyun, c.gec_boyun, false);
+
+  document.getElementById('kk-gerginlik').textContent  = sGerg != null ? '%' + sGerg : '–';
+  document.getElementById('kk-gerginlik').style.color   = sGerg ? renkGerg(sGerg) : '#94a3b8';
+  document.getElementById('kk-gerginlik-alt').innerHTML = 'Geçen hafta: ' + (c.gec_gerginlik != null ? '%' + c.gec_gerginlik : '–') + ' ' + okHtml(sGerg, c.gec_gerginlik, false);
+}
+
+// ============================================================
+// RAPOR SEKMESİ
+// ============================================================
+async function raporYukle() {
+  try {
+    var resp = await fetch(API + '/posture/weekly-comparison', { headers: authHeaders() });
+    var data = await resp.json();
+    if (!data.karsilastirma) return;
+    var c = data.karsilastirma, gunler = data.gunler || [];
+
+    // --- 4 Metrik Kart ---
+    var skor = c.bu_skor, iyi = c.bu_iyi_pct, gun = c.bu_gun;
+
+    var rSkor = document.getElementById('r-skor');
+    rSkor.textContent = skor != null ? skor : '–';
+    rSkor.style.color = skor ? (parseFloat(skor)>=80?'#22c55e':parseFloat(skor)>=60?'#f59e0b':'#ef4444') : '#94a3b8';
+    if (skor != null && c.gec_skor != null) {
+      var farkSkor = parseFloat(skor) - parseFloat(c.gec_skor);
+      document.getElementById('r-skor-trend').innerHTML = (farkSkor > 0
+        ? '<span style="color:#22c55e">▲ +' + farkSkor.toFixed(1) + ' geçen haftaya göre</span>'
+        : farkSkor < 0 ? '<span style="color:#ef4444">▼ ' + farkSkor.toFixed(1) + ' geçen haftaya göre</span>'
+        : '<span style="color:#64748b">→ Geçen haftayla aynı</span>');
+    }
+
+    var rIyi = document.getElementById('r-iyi');
+    rIyi.textContent = iyi != null ? '%' + iyi : '–';
+    rIyi.style.color = iyi ? (parseFloat(iyi)>=70?'#22c55e':parseFloat(iyi)>=50?'#f59e0b':'#ef4444') : '#94a3b8';
+    if (iyi != null && c.gec_iyi_pct != null) {
+      var farkIyi = parseFloat(iyi) - parseFloat(c.gec_iyi_pct);
+      document.getElementById('r-iyi-trend').innerHTML = (farkIyi > 0
+        ? '<span style="color:#22c55e">▲ +' + farkIyi.toFixed(1) + '% iyileşme</span>'
+        : farkIyi < 0 ? '<span style="color:#ef4444">▼ ' + Math.abs(farkIyi).toFixed(1) + '% düşüş</span>'
+        : '<span style="color:#64748b">→ Stabil</span>');
+    }
+
+    document.getElementById('r-gun').textContent = (gun != null ? gun : '–') + '/7';
+    document.getElementById('r-gun').style.color = gun ? (gun >= 5 ? '#22c55e' : gun >= 3 ? '#f59e0b' : '#ef4444') : '#94a3b8';
+
+    var simdi = Date.now();
+    var buHafta = gunler.filter(function(g) { return (simdi - new Date(g.gun).getTime()) <= 7*24*3600*1000; });
+    if (buHafta.length > 0) {
+      var enIyi = buHafta.reduce(function(a,b){ return parseFloat(a.ort_skor)>parseFloat(b.ort_skor)?a:b; });
+      var gd = new Date(enIyi.gun);
+      var gunAdlar = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+      document.getElementById('r-en-iyi').textContent = parseFloat(enIyi.ort_skor).toFixed(0);
+      document.getElementById('r-en-iyi-skor').textContent = gunAdlar[gd.getDay()] + ' — ' + parseFloat(enIyi.ort_skor).toFixed(0) + ' puan';
+    }
+
+    // --- Değerlendirme Metni ---
+    var dkutu = document.getElementById('r-degerlendirme');
+    if (skor != null) {
+      var durum = parseFloat(skor) >= 80 ? 'mükemmel' : parseFloat(skor) >= 65 ? 'iyi' : parseFloat(skor) >= 50 ? 'orta' : 'düşük';
+      var iyiTxt = iyi != null ? ' İyi duruş oranınız <strong>%' + iyi + '</strong>' + (parseFloat(iyi) >= 70 ? ', bu oldukça iyi bir sonuç.' : parseFloat(iyi) >= 50 ? ', ortalama seviyede.' : ', iyileştirme gerekiyor.') : '';
+      var gunTxt = gun != null ? ' Bu hafta <strong>' + gun + ' gün</strong> aktif takip yaptınız.' : '';
+      var boyunTxt = c.bu_boyun != null ? ' Boyun açınız ortalama <strong>' + c.bu_boyun + '°</strong>' + (parseFloat(c.bu_boyun) > 15 ? ' — öne eğilim fazla, dikkat edin.' : ', normal sınırlar içinde.') : '';
+      dkutu.style.display = 'block';
+      dkutu.innerHTML = '📝 <strong>Bu Haftanın Değerlendirmesi:</strong> Haftalık puan ortalamanız <strong>' + skor + '/100</strong> ile <strong>' + durum + '</strong> seviyede.' + iyiTxt + gunTxt + boyunTxt;
+    }
+
+    // --- 14 Günlük Bar Grafik ---
+    var grafikDiv = document.getElementById('rapor-grafik');
+    if (gunler.length > 0) {
+      var grafikHTML = '';
+      gunler.forEach(function(g) {
+        var s = parseFloat(g.ort_skor);
+        var yuzde = Math.max(4, s);
+        var renk = s >= 80 ? '#22c55e' : s >= 60 ? '#f59e0b' : '#ef4444';
+        var gd2 = new Date(g.gun);
+        var gunAd = ['Pz','Pt','Sa','Ça','Pe','Cu','Ct'][gd2.getDay()];
+        var ayGun = (gd2.getMonth()+1) + '/' + gd2.getDate();
+        grafikHTML += '<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px;">' +
+          '<div style="font-size:9px;color:#64748b">' + s.toFixed(0) + '</div>' +
+          '<div style="width:100%;height:' + yuzde.toFixed(0) + '%;background:' + renk + ';border-radius:4px 4px 0 0;min-height:4px;transition:height .5s ease"></div>' +
+          '<div style="font-size:9px;color:#475569">' + gunAd + '</div>' +
+          '<div style="font-size:8px;color:#334155">' + ayGun + '</div>' +
+          '</div>';
+      });
+      grafikDiv.style.cssText = 'display:flex;align-items:flex-end;gap:3px;height:120px;padding:4px 0 0 0;';
+      grafikDiv.innerHTML = grafikHTML;
+    } else {
+      grafikDiv.innerHTML = '<div style="color:#475569;font-size:12px;margin:auto">Henüz yeterli veri yok</div>';
+    }
+
+    // --- Karşılaştırma Barları ---
+    var karDiv = document.getElementById('rapor-karsilastirma');
+    function barSatir(ad, buVal, gecVal, birim, yukariIyi, maxDeger) {
+      if (buVal == null) return '';
+      var bu = parseFloat(buVal), gec = gecVal != null ? parseFloat(gecVal) : null;
+      var buPct = Math.min(100, (bu / maxDeger) * 100);
+      var gecPct = gec != null ? Math.min(100, (gec / maxDeger) * 100) : 0;
+      var fark = gec != null ? bu - gec : null;
+      var farkTxt = '';
+      if (fark != null) {
+        // fIyi: değişim duruş kalitesini iyileştirdi mi?
+        var fIyi = yukariIyi ? fark > 0 : fark < 0;
+        var fRenk = fIyi ? '#22c55e' : '#ef4444';
+        // Ok yönü daima kalite yönünü gösterir (▲ = iyileşti, ▼ = kötüleşti)
+        var fOk = fIyi ? '▲' : '▼';
+        var fAbsFark = Math.abs(fark).toFixed(1);
+        farkTxt = Math.abs(fark) > 0.049
+          ? '<span style="color:' + fRenk + '">' + fOk + fAbsFark + birim + '</span>'
+          : '<span style="color:#64748b">→</span>';
+      }
+      var buRenk = yukariIyi ? (bu >= maxDeger*0.7 ? '#22c55e' : bu >= maxDeger*0.5 ? '#f59e0b' : '#ef4444') : (bu <= maxDeger*0.3 ? '#22c55e' : bu <= maxDeger*0.5 ? '#f59e0b' : '#ef4444');
+      return '<div class="rapor-bar-satir">' +
+        '<div class="rapor-bar-etiket"><span class="rapor-bar-ad">' + ad + '</span>' +
+        '<div class="rapor-bar-degerler"><span style="color:' + buRenk + '">' + buVal + birim + '</span>' +
+        (gec != null ? '<span style="color:#475569;font-size:11px">/ ' + gecVal + birim + '</span>' : '') +
+        farkTxt + '</div></div>' +
+        '<div class="rapor-bar-kap"><div class="rapor-bar-ic" style="width:' + buPct.toFixed(0) + '%;background:' + buRenk + '"></div></div>' +
+        (gec != null ? '<div class="rapor-bar-gecen"><div class="rapor-bar-gecen-ic" style="width:' + gecPct.toFixed(0) + '%"></div></div>' : '') +
+        '</div>';
+    }
+    karDiv.innerHTML =
+      '<div style="font-size:10px;color:#475569;margin-bottom:10px">Bu hafta / <span style="color:#334155">Geçen hafta</span></div>' +
+      barSatir('Ortalama Skor', c.bu_skor, c.gec_skor, '', true, 100) +
+      barSatir('İyi Duruş %', c.bu_iyi_pct, c.gec_iyi_pct, '%', true, 100) +
+      barSatir('Boyun Açısı', c.bu_boyun, c.gec_boyun, '°', false, 35) +
+      barSatir('Omuz Gerginliği', c.bu_gerginlik, c.gec_gerginlik, '%', false, 80);
+
+  } catch(e) { console.error('rapor error', e); }
+
+  raporAiAl();
+}
+
+async function raporAiAl() {
+  var sonuc = document.getElementById('raporAiSonuc');
+  sonuc.innerHTML = '<div style="display:flex;align-items:center;gap:10px;color:#475569;font-size:13px;padding:10px 0;"><span style="display:inline-block;animation:spin 1s linear infinite">⏳</span> AI analizi hazırlanıyor…</div>';
+  try {
+    var resp = await fetch(API + '/ai/health-prediction', { headers: authHeaders() });
+    var data = await resp.json();
+    if (!resp.ok) {
+      sonuc.innerHTML = '<div style="color:#ef4444;padding:10px 0">⚠️ ' + (data.error || 'Analiz alınamadı') + '</div>';
+      return;
+    }
+    var p = data.prediction, parsed = null;
+    try { parsed = JSON.parse(p.prediction_text); } catch { parsed = p; }
+    var riskRenk  = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
+    var riskMetin = { low:'✅ Düşük Risk', medium:'⚠️ Orta Risk', high:'🔴 Yüksek Risk' };
+    var cachedBadge = data.cached ? '<span style="font-size:10px;color:#475569;margin-left:8px;vertical-align:middle">✓ Önbellekten</span>' : '';
+    var html = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">' +
+      '<span class="risk-badge ' + (riskRenk[p.risk_level]||'') + '">' + (riskMetin[p.risk_level]||p.risk_level) + '</span>' +
+      '<span style="font-size:11px;color:#475569">Model: ' + (p.model_used||'AI') + '</span>' + cachedBadge + '</div>';
+    if (parsed && parsed.summary) {
+      html += '<div style="background:rgba(99,102,241,.07);border-left:3px solid #6366f1;padding:12px 14px;border-radius:0 8px 8px 0;margin-bottom:16px;font-size:13px;line-height:1.7;color:#cbd5e1">' + tr(parsed.summary) + '</div>';
+    }
+    if (parsed && parsed.risks && parsed.risks.length > 0) {
+      html += '<div style="margin-bottom:16px"><div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:10px">Tespit Edilen Riskler</div>';
+      parsed.risks.forEach(function(risk) {
+        var pct = Math.round((risk.probability || 0) * 100);
+        var rRenk = pct >= 60 ? '#ef4444' : pct >= 35 ? '#f59e0b' : '#22c55e';
+        html += '<div style="margin-bottom:12px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+          '<span style="font-size:13px;font-weight:600;color:#e2e8f0">' + tr(risk.name) + '</span>' +
+          '<span style="font-size:12px;font-weight:700;color:' + rRenk + '">' + pct + '%</span></div>' +
+          '<div style="background:#1e293b;border-radius:4px;height:6px;overflow:hidden;margin-bottom:5px;">' +
+          '<div style="width:' + pct + '%;height:100%;background:' + rRenk + ';border-radius:4px;transition:width .6s ease;"></div></div>' +
+          '<div style="font-size:11px;color:#64748b;line-height:1.5">' + tr(risk.description || '') + '</div></div>';
+      });
+      html += '</div>';
+    }
+    if (parsed && parsed.recommendations && parsed.recommendations.length > 0) {
+      html += '<div><div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:10px">💡 Öneriler</div>';
+      parsed.recommendations.forEach(function(r, i) {
+        html += '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1e293b;">' +
+          '<span style="background:#1e3a2f;color:#22c55e;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">' + (i+1) + '</span>' +
+          '<span style="font-size:13px;color:#94a3b8;line-height:1.5">' + tr(r) + '</span></div>';
+      });
+      html += '</div>';
+    }
+    sonuc.innerHTML = html;
+  } catch(e) {
+    sonuc.innerHTML = '<div style="color:#ef4444;padding:10px 0">⚠️ Bağlantı hatası: ' + e.message + '</div>';
+  }
+}
+
+// ── Hesap Modalı ──────────────────────────────────────────────
+function hesapModalAc() {
+  var kullanici = JSON.parse(localStorage.getItem('user') || '{}');
+  document.getElementById('hesapModal').style.display = 'flex';
+  document.getElementById('hesapAdi').textContent  = kullanici.name  || '–';
+  document.getElementById('hesapMail').textContent = kullanici.email || '–';
+  document.getElementById('hesapSifreMesaj').textContent = '';
+  document.getElementById('hesapSilMesaj').textContent   = '';
+  document.getElementById('hesapSilOnay').style.display  = 'none';
+}
+function hesapModalKapat() {
+  document.getElementById('hesapModal').style.display = 'none';
+}
+async function sifreDegistir() {
+  var eskiSifre = document.getElementById('eskiSifre').value;
+  var yeniSifre = document.getElementById('yeniSifre').value;
+  var mesajEl   = document.getElementById('hesapSifreMesaj');
+  if (!eskiSifre || !yeniSifre) { mesajEl.style.color='#ef4444'; mesajEl.textContent='Her iki alanı doldurun.'; return; }
+  if (yeniSifre.length < 6)     { mesajEl.style.color='#ef4444'; mesajEl.textContent='Yeni şifre en az 6 karakter olmalı.'; return; }
+  try {
+    var r = await fetch(API + '/auth/change-password', {
+      method:'POST', headers:{...authHeaders(),'Content-Type':'application/json'},
+      body: JSON.stringify({ currentPassword: eskiSifre, newPassword: yeniSifre })
+    });
+    var d = await r.json();
+    if (!r.ok) { mesajEl.style.color='#ef4444'; mesajEl.textContent=d.error||'Hata oluştu.'; return; }
+    mesajEl.style.color='#22c55e'; mesajEl.textContent='Şifre başarıyla değiştirildi.';
+    document.getElementById('eskiSifre').value='';
+    document.getElementById('yeniSifre').value='';
+  } catch(e) { mesajEl.style.color='#ef4444'; mesajEl.textContent='Bağlantı hatası.'; }
+}
+function hesapSilGoster() {
+  document.getElementById('hesapSilOnay').style.display = 'block';
+}
+async function hesapSil() {
+  var sifre  = document.getElementById('silSifre').value;
+  var mesajEl = document.getElementById('hesapSilMesaj');
+  if (!sifre) { mesajEl.style.color='#ef4444'; mesajEl.textContent='Şifrenizi girin.'; return; }
+  if (!confirm('Tüm verileriniz kalıcı olarak silinecek. Emin misiniz?')) return;
+  try {
+    var r = await fetch(API + '/auth/account', {
+      method:'DELETE', headers:{...authHeaders(),'Content-Type':'application/json'},
+      body: JSON.stringify({ password: sifre })
+    });
+    var d = await r.json();
+    if (!r.ok) { mesajEl.style.color='#ef4444'; mesajEl.textContent=d.error||'Hata oluştu.'; return; }
+    localStorage.clear();
+    alert('Hesabınız silindi. Ana sayfaya yönlendiriliyorsunuz.');
+    location.href = '/login.html';
+  } catch(e) { mesajEl.style.color='#ef4444'; mesajEl.textContent='Bağlantı hatası.'; }
+}
+</script>
+
+<!-- Hesap Modalı -->
+<div id="hesapModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0f172a;border:1px solid #1e293b;border-radius:16px;width:100%;max-width:440px;padding:28px;position:relative;">
+    <button onclick="hesapModalKapat()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#64748b;font-size:20px;cursor:pointer">✕</button>
+    <div style="font-size:16px;font-weight:700;margin-bottom:20px;color:#e2e8f0">⚙️ Hesap Ayarları</div>
+
+    <!-- Bilgiler -->
+    <div style="background:#1e293b;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;color:#94a3b8;">
+      <div>👤 <span id="hesapAdi" style="color:#e2e8f0;font-weight:600"></span></div>
+      <div style="margin-top:6px">📧 <span id="hesapMail"></span></div>
+    </div>
+
+    <!-- Şifre Değiştir -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Şifre Değiştir</div>
+      <input id="eskiSifre" type="password" placeholder="Mevcut şifre" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:9px 12px;color:#e2e8f0;font-size:13px;margin-bottom:8px;box-sizing:border-box">
+      <input id="yeniSifre" type="password" placeholder="Yeni şifre (min. 6 karakter)" style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:9px 12px;color:#e2e8f0;font-size:13px;margin-bottom:8px;box-sizing:border-box">
+      <button onclick="sifreDegistir()" style="background:#6366f1;color:white;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer">Değiştir</button>
+      <div id="hesapSifreMesaj" style="font-size:12px;margin-top:6px"></div>
+    </div>
+
+    <!-- Hesap Sil -->
+    <div style="border-top:1px solid #1e293b;padding-top:16px">
+      <div style="font-size:12px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Hesabı Sil (KVKK)</div>
+      <p style="font-size:12px;color:#64748b;margin-bottom:10px;line-height:1.6">Hesabınız ve tüm duruş verileriniz kalıcı olarak silinir. Bu işlem geri alınamaz.</p>
+      <button onclick="hesapSilGoster()" style="background:#1e293b;color:#ef4444;border:1px solid #ef4444;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">🗑 Hesabımı Sil</button>
+      <div id="hesapSilOnay" style="display:none;margin-top:12px">
+        <input id="silSifre" type="password" placeholder="Şifrenizi onaylayın" style="width:100%;background:#1e293b;border:1px solid #ef4444;border-radius:8px;padding:9px 12px;color:#e2e8f0;font-size:13px;margin-bottom:8px;box-sizing:border-box">
+        <button onclick="hesapSil()" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer">Hesabı Kalıcı Sil</button>
+      </div>
+      <div id="hesapSilMesaj" style="font-size:12px;margin-top:6px"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

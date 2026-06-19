@@ -1,0 +1,92 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postur_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postur_takip}
+      POSTGRES_USER: ${POSTGRES_USER:-postur_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postur_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postur_user} -d ${POSTGRES_DB:-postur_takip}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: postur_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postur_user}:${POSTGRES_PASSWORD:-postur_pass}@postgres:5432/${POSTGRES_DB:-postur_takip}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      OLLAMA_URL: http://host.docker.internal:8080
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-dikdur}
+      OLLAMA_FT_MODEL: ${OLLAMA_FT_MODEL:-dikdur}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      APP_URL: ${APP_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@posturtakip.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: postur_frontend
+    restart: unless-stopped
+    # Port 80 nginx tarafından yönetiliyor, burada expose etme
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: dikdur_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf.template:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot:ro
+    command: >
+      /bin/sh -c "envsubst '$$DOMAIN' < /etc/nginx/nginx.conf.template
+      > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    depends_on:
+      - frontend
+      - backend
+
+  certbot:
+    image: certbot/certbot
+    container_name: dikdur_certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done'"
+
+volumes:
+  postgres_data:
