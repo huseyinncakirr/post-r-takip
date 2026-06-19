@@ -393,6 +393,7 @@ header {
     <span id="oturumSaati">Oturum: 00:00</span>
     <button class="header-btn" id="temaBtn"   onclick="temaDegistir()">🌙 Karanlık</button>
     <button class="header-btn" id="sesBtn"    onclick="sesDegistir()">🔊 Ses Açık</button>
+    <input type="range" id="sesSlider" min="0" max="1" step="0.1" value="0.9" oninput="sesVolumeDegistir(this.value)" style="width:70px;cursor:pointer;accent-color:#6366f1;vertical-align:middle">
     <button class="header-btn" id="kayitBtn"  onclick="kayitDegistir()">⏸ Kaydı Durdur</button>
     <span id="kullaniciAdi" style="font-size:12px;color:#64748b"></span>
     <button class="header-btn" onclick="hesapModalAc()" style="color:#94a3b8">⚙️ Hesabım</button>
@@ -749,6 +750,8 @@ var uyariSayisi     = 0;           // Ekranda büyük uyarı kaç kez gösterild
 var sonBuyukUyari   = 0;           // Son büyük uyarının timestamp'i (ms)
 var oturumBaslangic = Date.now();  // Sayfa açıldığındaki zaman (oturum saati için)
 var sesliUyariAcik  = true;        // Sesli uyarı açık mı? Header butonuyla değişir
+var sesVolume       = parseFloat(localStorage.getItem('pt_ses_vol') || '0.9');
+var _sonSesMetin    = '';
 var sonSesliUyari   = 0;           // Son sesli uyarının timestamp'i (ms)
 var SESLI_ARALIK    = 7000;        // Sesli uyarılar arası minimum süre (7 saniye)
 var _sesliSira      = 0;           // Sorunlar listesinde sıradaki uyarı indeksi
@@ -876,9 +879,10 @@ function sesliBildir(metin) {
   sonSesliUyari = simdi;
   // Parantez içi kısımları temizle, fazla boşlukları kaldır
   var temiz = metin.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+  _sonSesMetin = temiz;
   var u = new SpeechSynthesisUtterance(temiz);
-  u.lang = 'tr-TR'; u.rate = 0.95; u.pitch = 1.0; u.volume = 0.9;
-  window.speechSynthesis.cancel(); // Varsa önceki sesi iptal et
+  u.lang = 'tr-TR'; u.rate = 0.95; u.pitch = 1.0; u.volume = sesVolume;
+  window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
   return true; // Uyarı verildi — _sesliSira'yı ilerletmesi için true dön
 }
@@ -906,6 +910,16 @@ function sesDegistir() {
   if (sesliUyariAcik) { btn.textContent = '🔊 Ses Açık'; }
   else { btn.textContent = '🔇 Ses Kapalı'; window.speechSynthesis.cancel(); }
 }
+
+function sesVolumeDegistir(val) {
+  sesVolume = parseFloat(val);
+  localStorage.setItem('pt_ses_vol', sesVolume);
+}
+
+(function() {
+  var slider = document.getElementById('sesSlider');
+  if (slider) slider.value = sesVolume;
+})();
 
 // ============================================================
 // KAYIT SİSTEMİ
