@@ -2,9 +2,17 @@ const { Pool } = require('pg');
 const fs   = require('fs');
 const path = require('path');
 
-// .rlwy.net = Railway'in dış proxy'si → SSL gerekir
-// .railway.internal = iç ağ → SSL gerekmez
-const _dbUrl = process.env.DATABASE_URL || '';
+// Railway'de DATABASE_URL bazen çift yazılabiliyor (template + literal birleşimi)
+// Örnek: "postgresql://...railway" + "postgresql://...railway"
+// lastIndexOf ile son geçerli URL'yi al
+let _dbUrl = (process.env.DATABASE_URL || '').trim();
+const _lastProto = _dbUrl.lastIndexOf('postgresql://');
+if (_lastProto > 0) {
+  _dbUrl = _dbUrl.substring(_lastProto);
+  console.warn('⚠️  DATABASE_URL otomatik düzeltildi (çift URL algılandı)');
+}
+
+// Dış proxy (.rlwy.net) SSL gerektirir, iç ağ (.railway.internal) gerektirmez
 const _needSsl = _dbUrl.includes('.rlwy.net') || _dbUrl.includes('sslmode=require');
 
 const pool = new Pool({
@@ -26,7 +34,7 @@ async function initDb() {
   });
   if (!client) return;
   try {
-    await client.query('SET statement_timeout = 15000'); // 15 saniye max
+    await client.query('SET statement_timeout = 15000');
     const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
     await client.query(sql);
     console.log('✅ Veritabanı şeması uygulandı');
