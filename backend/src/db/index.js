@@ -2,14 +2,17 @@ const { Pool } = require('pg');
 const fs   = require('fs');
 const path = require('path');
 
+// .rlwy.net = Railway'in dış proxy'si → SSL gerekir
+// .railway.internal = iç ağ → SSL gerekmez
+const _dbUrl = process.env.DATABASE_URL || '';
+const _needSsl = _dbUrl.includes('.rlwy.net') || _dbUrl.includes('sslmode=require');
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: _dbUrl,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('railway')
-    ? { rejectUnauthorized: false }
-    : false,
+  ssl: _needSsl ? { rejectUnauthorized: false } : false,
 });
 
 pool.on('error', (err) => {
