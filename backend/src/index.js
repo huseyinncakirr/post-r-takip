@@ -49,9 +49,19 @@ app.use('/api/posture', postureRoutes);
 app.use('/api/ai',      aiRoutes);
 app.use('/api/admin',   adminRoutes);
 
-// Saglik kontrolu
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Saglik kontrolu + DB testi (gecici)
+app.get('/health', async (req, res) => {
+  const { pool } = require('./db');
+  let dbOk = false, dbErr = null, dbUrlHint = '';
+  try {
+    await pool.query('SELECT 1');
+    dbOk = true;
+  } catch (e) {
+    dbErr = e.message;
+  }
+  const raw = (process.env.DATABASE_URL || '');
+  dbUrlHint = raw.substring(0, 40) + (raw.length > 40 ? '...' : '');
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), db: dbOk ? 'ok' : 'error', dbErr, dbUrlHint });
 });
 
 // 404
