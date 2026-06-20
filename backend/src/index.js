@@ -8,6 +8,7 @@ const authRoutes    = require('./routes/auth');
 const postureRoutes = require('./routes/posture');
 const aiRoutes      = require('./routes/ai');
 const adminRoutes   = require('./routes/admin');
+const { initDb }    = require('./db');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -64,7 +65,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Sunucu hatası' });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`DikDur Backend calisiyor: http://0.0.0.0:${PORT}`);
-  console.log(`Ortam: ${process.env.NODE_ENV || 'development'}`);
+initDb().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`DikDur Backend calisiyor: http://0.0.0.0:${PORT}`);
+    console.log(`Ortam: ${process.env.NODE_ENV || 'development'}`);
+  });
 });

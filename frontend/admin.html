@@ -153,21 +153,6 @@ tr:last-child td { border-bottom: none; }
 <div id="login-ekran">
   <div class="login-kutu">
     <div class="login-logo">
-      <div class="ikon" style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#6366f1,#22d3ee);display:inline-flex;align-items:center;justify-content:center;">
-        <svg viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="36">
-          <circle cx="12" cy="5" r="4" fill="white"/>
-          <line x1="12" y1="9" x2="12" y2="24" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="12" cy="13" r="1.3" fill="rgba(255,255,255,0.45)"/>
-          <circle cx="12" cy="17.5" r="1.3" fill="rgba(255,255,255,0.45)"/>
-          <circle cx="12" cy="22" r="1.3" fill="rgba(255,255,255,0.45)"/>
-          <line x1="4" y1="14" x2="20" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4" y1="14" x2="2" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-          <line x1="20" y1="14" x2="22" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-          <line x1="8" y1="24" x2="16" y2="24" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          <line x1="10" y1="24" x2="9" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-          <line x1="14" y1="24" x2="15" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-        </svg>
-      </div>
       <h1>Dik<span>Dur</span></h1>
       <div class="rozet">ADMİN PANELİ</div>
     </div>
@@ -191,21 +176,6 @@ tr:last-child td { border-bottom: none; }
 
   <div class="sidebar">
     <div class="sidebar-logo">
-      <div class="kutu">
-        <svg viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="17" height="22">
-          <circle cx="12" cy="5" r="4" fill="white"/>
-          <line x1="12" y1="9" x2="12" y2="24" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="12" cy="13" r="1.3" fill="rgba(255,255,255,0.45)"/>
-          <circle cx="12" cy="17.5" r="1.3" fill="rgba(255,255,255,0.45)"/>
-          <circle cx="12" cy="22" r="1.3" fill="rgba(255,255,255,0.45)"/>
-          <line x1="4" y1="14" x2="20" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          <line x1="4" y1="14" x2="2" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-          <line x1="20" y1="14" x2="22" y2="22" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-          <line x1="8" y1="24" x2="16" y2="24" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          <line x1="10" y1="24" x2="9" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-          <line x1="14" y1="24" x2="15" y2="31" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>
-        </svg>
-      </div>
       <div class="yazi">Dik<span>Dur</span> <span class="rozet">ADMİN</span></div>
     </div>
     <div class="nav-item aktif" onclick="sekmeGoster('genel')">
@@ -336,6 +306,21 @@ tr:last-child td { border-bottom: none; }
 var API   = '/api';
 var token = null;
 
+// Timeout'lu fetch — Railway cold start için 20 saniye bekler
+async function apiFetch(url, opts) {
+  var ctrl = new AbortController();
+  var tid  = setTimeout(function() { ctrl.abort(); }, 20000);
+  try {
+    var res = await fetch(url, Object.assign({}, opts, { signal: ctrl.signal }));
+    return res;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Sunucu yanıt vermedi (zaman aşımı)');
+    throw e;
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
 // ============================================================
 // GİRİŞ / ÇIKIŞ
 // ============================================================
@@ -439,17 +424,26 @@ function sekmeGoster(id) {
 // GENEL BAKIŞ
 // ============================================================
 async function genelYukle() {
+  document.getElementById('genel-tablo').innerHTML = '<tr><td colspan="6" class="bos-mesaj">Yükleniyor…</td></tr>';
+  ['st-kullanici','st-kayit','st-skor','st-risk'].forEach(function(id) {
+    document.getElementById(id).textContent = '…';
+  });
+
   try {
-    var r1 = await fetch(API + '/admin/stats', { headers: authHeaders() });
-    var r2 = await fetch(API + '/admin/users', { headers: authHeaders() });
+    var r1 = await apiFetch(API + '/admin/stats', { headers: authHeaders() });
+    var r2 = await apiFetch(API + '/admin/users', { headers: authHeaders() });
+
     if (r1.status === 401 || r1.status === 403) { loginEkraniGoster(); return; }
+
     var stats = await r1.json();
     var data  = await r2.json();
 
-    document.getElementById('st-kullanici').textContent = stats.kullanici_sayisi || 0;
-    document.getElementById('st-kayit').textContent     = stats.toplam_kayit    || 0;
+    if (stats.error) throw new Error(stats.error);
+
+    document.getElementById('st-kullanici').textContent = stats.kullanici_sayisi !== undefined ? stats.kullanici_sayisi : '?';
+    document.getElementById('st-kayit').textContent     = stats.toplam_kayit    !== undefined ? stats.toplam_kayit    : '?';
     document.getElementById('st-skor').textContent      = (stats.ortalama_skor  || 0) + '/100';
-    document.getElementById('st-risk').textContent      = stats.risk_yuksek     || 0;
+    document.getElementById('st-risk').textContent      = stats.risk_yuksek     !== undefined ? stats.risk_yuksek     : '?';
 
     var rM = { low:'Düşük', medium:'Orta', high:'Yüksek' };
     var rS = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
@@ -467,7 +461,12 @@ async function genelYukle() {
     });
     document.getElementById('genel-tablo').innerHTML = html || '<tr><td colspan="6" class="bos-mesaj">Henüz kullanıcı yok</td></tr>';
   } catch (e) {
-    document.getElementById('genel-tablo').innerHTML = '<tr><td colspan="6" class="bos-mesaj">Yüklenemedi</td></tr>';
+    var msg = e.message || 'Bağlantı hatası';
+    ['st-kullanici','st-kayit','st-skor','st-risk'].forEach(function(id) {
+      document.getElementById(id).textContent = '–';
+    });
+    document.getElementById('genel-tablo').innerHTML =
+      '<tr><td colspan="6" class="bos-mesaj" style="color:#ef4444">⚠ Yüklenemedi: ' + msg + '</td></tr>';
   }
 }
 
@@ -477,14 +476,17 @@ async function genelYukle() {
 var tumKullanicilar = [];
 
 async function kullanicilariYukle() {
+  document.getElementById('kullanici-tablo').innerHTML = '<tr><td colspan="7" class="bos-mesaj">Yükleniyor…</td></tr>';
   try {
-    var resp = await fetch(API + '/admin/users', { headers: authHeaders() });
+    var resp = await apiFetch(API + '/admin/users', { headers: authHeaders() });
     if (resp.status === 401 || resp.status === 403) { loginEkraniGoster(); return; }
     var data = await resp.json();
+    if (data.error) throw new Error(data.error);
     tumKullanicilar = data.users || [];
     kullanicilariGoster(tumKullanicilar);
   } catch (e) {
-    document.getElementById('kullanici-tablo').innerHTML = '<tr><td colspan="7" class="bos-mesaj">Yüklenemedi</td></tr>';
+    document.getElementById('kullanici-tablo').innerHTML =
+      '<tr><td colspan="7" class="bos-mesaj" style="color:#ef4444">⚠ Yüklenemedi: ' + (e.message || 'Bağlantı hatası') + '</td></tr>';
   }
 }
 
@@ -531,10 +533,11 @@ async function kullaniciKayitlariGor(userId, userName) {
   document.getElementById('kayit-stats').innerHTML = '';
 
   try {
-    var r1 = await fetch(API + '/admin/users/' + userId,           { headers: authHeaders() });
-    var r2 = await fetch(API + '/admin/users/' + userId + '/records', { headers: authHeaders() });
+    var r1 = await apiFetch(API + '/admin/users/' + userId,              { headers: authHeaders() });
+    var r2 = await apiFetch(API + '/admin/users/' + userId + '/records', { headers: authHeaders() });
     var detay   = await r1.json();
     var records = await r2.json();
+    if (detay.error) throw new Error(detay.error);
 
     var s = detay.stats || {};
     document.getElementById('kayit-stats').innerHTML =
@@ -575,8 +578,9 @@ async function kullaniciSaglikGor(userId, userName) {
   document.getElementById('saglik-liste').innerHTML = '<div class="bos-mesaj">Yükleniyor…</div>';
 
   try {
-    var resp = await fetch(API + '/admin/users/' + userId + '/health', { headers: authHeaders() });
+    var resp = await apiFetch(API + '/admin/users/' + userId + '/health', { headers: authHeaders() });
     var data = await resp.json();
+    if (data.error) throw new Error(data.error);
     var rS = { low:'risk-low', medium:'risk-medium', high:'risk-high' };
     var rM = { low:'Düşük Risk', medium:'Orta Risk', high:'Yüksek Risk' };
 
