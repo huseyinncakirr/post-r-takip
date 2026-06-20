@@ -65,9 +65,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Sunucu hatası' });
 });
 
-initDb().then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`DikDur Backend calisiyor: http://0.0.0.0:${PORT}`);
-    console.log(`Ortam: ${process.env.NODE_ENV || 'development'}`);
-  });
+// Server hemen başlar — initDb arka planda çalışır, server'ı bloke etmez
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`DikDur Backend calisiyor: http://0.0.0.0:${PORT}`);
+  console.log(`Ortam: ${process.env.NODE_ENV || 'development'}`);
+  initDb();
 });

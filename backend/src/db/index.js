@@ -19,14 +19,21 @@ pool.on('error', (err) => {
   console.error('PostgreSQL pool error:', err.message);
 });
 
-// Uygulama başlarken schema.sql çalıştırır — Railway dahil her ortamda tabloları oluşturur
 async function initDb() {
+  const client = await pool.connect().catch(err => {
+    console.error('❌ DB bağlantı hatası:', err.message);
+    return null;
+  });
+  if (!client) return;
   try {
+    await client.query('SET statement_timeout = 15000'); // 15 saniye max
     const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
-    await pool.query(sql);
+    await client.query(sql);
     console.log('✅ Veritabanı şeması uygulandı');
   } catch (err) {
     console.error('❌ DB init hatası:', err.message);
+  } finally {
+    client.release();
   }
 }
 
